@@ -1,0 +1,53 @@
+substitutions:
+  device_name: garage_motion_2
+  upper_device_name: Garage Motion 2
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+  
+globals:
+  - id: signal_start
+    type: unsigned long int
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO13
+    name: $upper_device_name
+    device_class: motion
+    filters:
+      - delayed_on_off: 2950ms
+    state_topic: $device_name/state
+    on_press:
+      then:
+        - lambda:
+            id(signal_start) = millis();
+    on_release:
+      then:
+        - lambda:
+            ESP_LOGD("custom","Signal Length %d", (millis() - id(signal_start)));
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+  
+switch:
+  - platform: restart
+    name: $upper_device_name Restart

@@ -1,0 +1,13 @@
+---
+platform: template
+name: $upper_device_name Sea Level Equivalent Pressure
+id: bme280_sea_level_pressure
+lambda: |-
+  const float STANDARD_ALTITUDE = 204; // in meters, see note
+  return id(bme280_pressure).state / powf(1 - ((0.0065 * STANDARD_ALTITUDE) /
+    (id(bme280_temperature).state + (0.0065 * STANDARD_ALTITUDE) + 273.15)), 5.257); // in hPa
+update_interval: 60s
+unit_of_measurement: 'mBar'
+expire_after: 30min
+accuracy_decimals: 2
+state_topic: $device_name/sea_level_pressure/state

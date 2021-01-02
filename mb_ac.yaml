@@ -1,0 +1,39 @@
+substitutions:
+  device_name: mb_ac
+  upper_device_name: Master Bedroom AC
+  climate_id: mbac
+  switch_prefix: MB
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+    
+output: !include include/onboard_led.yaml
+    
+<<: !include include/fujitsu_climate.yaml 
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+      
+switch: !include include/fujitsu_switches.yaml

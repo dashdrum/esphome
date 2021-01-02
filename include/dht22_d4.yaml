@@ -1,0 +1,9 @@
+---
+platform: dht
+pin: D4
+model: DHT22
+temperature:
+  name: $upper_device_name Temperature
+humidity:
+  name: $upper_device_name Humidity
+update_interval: 15min

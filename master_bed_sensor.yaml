@@ -1,0 +1,99 @@
+substitutions:
+  device_name: master_bed_sensor
+  upper_device_name: Master Bed Sensor
+
+esphome:
+  name: $device_name
+  platform: ESP32
+  board: esp32doit-devkit-v1
+
+wifi: !include include/wifi.yaml
+
+## Note: I had to enable "multicast routing" on my router for mDNS to work for the ESP32S Devkit-v1
+
+captive_portal:
+
+web_server:
+  port: 80
+
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+      
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 600s
+    
+output: 
+  platform: gpio
+  pin: GPIO02
+  id: onboard_led
+
+esp32_touch:
+  # setup_mode: true
+   
+# All the pressure mats
+binary_sensor:
+  - platform: esp32_touch
+    name: $upper_device_name Pad1
+    pin: GPIO13
+    threshold: 7
+    id: pad1
+  - platform: esp32_touch
+    name: $upper_device_name Pad2
+    pin: GPIO27
+    threshold: 7
+    id: pad2
+  - platform: esp32_touch
+    name: $upper_device_name Pad3
+    pin: GPIO12
+    threshold: 7
+    id: pad3
+  - platform: esp32_touch
+    name: $upper_device_name Pad4
+    pin: GPIO14
+    threshold: 6
+    id: pad4
+     
+# The main sensors that are created using the all the zones    
+  - platform: template
+    name: $upper_device_name Entire Bed
+    lambda: |-
+      if (id(pad1).state || id(pad2).state
+          || id(pad3).state || id(pad4).state )  {
+        id(onboard_led).turn_on();
+        return true;
+      } else {
+        id(onboard_led).turn_off();
+        return false;
+      }    
+      
+  - platform: template
+    name: $upper_device_name Left Side
+    lambda: |-
+      if (id(pad1).state || id(pad2).state)  {
+        return true;
+      } else {
+        return false;
+      }    
+      
+  - platform: template
+    name: $upper_device_name Right Side
+    lambda: |-
+        if (id(pad3).state || id(pad4).state )  {
+          return true;
+        } else {
+          return false;
+        }    
+    

@@ -1,0 +1,100 @@
+---
+- platform: restart
+  name: $upper_device_name Restart
+
+- platform: template
+  name: $switch_prefix 70
+  turn_on_action:
+    - climate.control:
+        id: $climate_id
+        mode: COOL
+        target_temperature: 70°F
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+- platform: template
+  name: $switch_prefix 72
+  turn_on_action:
+    - climate.control:
+        id: $climate_id
+        mode: COOL
+        target_temperature: 72°F
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+- platform: template
+  name: $switch_prefix Off
+  turn_on_action:
+    - climate.control:
+        id: $climate_id
+        mode: "OFF"
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+- platform: template
+  name: $switch_prefix Powerful
+  turn_on_action:
+    - remote_transmitter.transmit_raw:
+        transmitter_id: $device_name
+        code: [3300,-1650, 450,-450, 450,-450, 450,-1250, 450,-450,
+              450,-1250, 450,-450, 450,-450, 450,-450, 500,-1200,
+              500,-1200, 450,-450, 450,-450, 450,-450, 450,-1250,
+              450,-1250, 450,-450, 450,-450, 450,-450, 450,-450,
+              450,-450, 450,-450, 450,-450, 450,-450, 450,-450, 450,
+              -450, 450,-450, 450,-450, 450,-450, 450,-1250, 450,-450,
+              450,-450, 450,-450, 450,-450, 450,-450, 450,-450, 450,
+              -450, 450,-1250, 450,-450, 450,-450, 450,-450, 450,-1250,
+              450,-450, 450,-450, 450,-1250, 450,-1250, 450,-1250, 450,
+              -450, 450,-450, 450,-450, 450,-1250, 450,-1250, 450,-450,
+              450,-450, 450,-450, 450,-1250, 450,-1250, 450] # Poweful
+        carrier_frequency: 38000
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+
+- platform: template
+  name: $switch_prefix Night
+  turn_on_action:
+    - remote_transmitter.transmit_raw:
+        transmitter_id: $device_name
+        code: [3302,-1610,428,-408,428,-410,428,-1218,428,-408,426,-1220,
+              428,-408,428,-410,426,-410,426,-1220,428,-1220,426,-410,426,-414,
+              424,-410,426,-1220,426,-1220,426,-410,426,-410,424,-410,428,-410,
+              426,-408,428,-408,426,-410,426,-410,426,-408,426,-410,426,-410,
+              426,-410,426,-410,426,-1220,424,-410,426,-412,426,-410,424,-412,
+              424,-410,424,-412,426,-410,426,-1220,426,-410,424,-412,426,-410,
+              426,-410,424,-1220,426,-1222,426,-1220,426,-1220,426,-1220,428,-1220,
+              426,-1220,428,-1218,428,-408,428,-408,426,-1218,428,-410,426,-410,
+              426,-410,426,-410,428,-408,428,-408,426,-410,428,-410,428,-1218,
+              426,-1226,424,-408,428,-408,428,-1220,428,-410,426,-410,426,-410,
+              428,-1218,428,-1220,428,-408,426,-410,428,-1218,428,-412,426,-410,
+              428,-408,428,-420,414,-420,416,-410,426,-410,426,-410,428,-1220,
+              426,-410,426,-410,426,-1220,426,-410,426,-408,428,-408,428,-408,
+              430,-408,428,-408,428,-420,414,-410,426,-410,428,-408,430,-408,
+              428,-408,428,-410,428,-408,428,-406,428,-410,428,-410,428,-408,
+              426,-410,428,-408,428,-408,430,-422,412,-410,428,-408,428,-410,
+              426,-422,414,-410,426,-410,428,-420,414,-410,428,-410,428,-410,
+              424,-1220,428,-408,428,-412,424,-408,428,-408,428,-1220,428,-1218,
+              430,-408,428,-1220,428,-1230,416,-410,426]  # 66F with Fan High
+        carrier_frequency: 38000
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+- platform: template
+  name: $switch_prefix Day
+  turn_on_action:
+    - climate.control:
+        id: $climate_id
+        mode: COOL
+        target_temperature: 74°F
+        # fan_mode: AUTO          # Not yet supported
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+

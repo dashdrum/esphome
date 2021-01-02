@@ -1,0 +1,8 @@
+---
+platform: gpio
+pin: GPIO13 # aka D7
+name: $upper_device_name
+device_class: motion
+filters:
+  - delayed_on: 20ms
+state_topic: $device_name/motion/state

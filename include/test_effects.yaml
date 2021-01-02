@@ -1,0 +1,77 @@
+---
+
+
+- addressable_lambda:
+    name: Cross Scan
+    update_interval: 60ms
+    lambda:
+      const int leg_count = 4;
+      static int leg;
+      static int pin;
+      static int direction;
+
+      int width = it.size() / leg_count;
+      int last_leg;
+
+      if(initial_run){
+        leg = 0;
+        pin = 0;
+        direction = 1;
+        it.all() = ESPColor::BLACK;
+      }
+
+      it[pin + (leg * width)] = current_color;
+      if(pin >=0 && pin < width){
+        it[pin + (leg * width) + (direction * -1)] = ESPColor::BLACK;
+      }
+      if(pin == 0 && direction == 1){
+        last_leg = leg -1;
+        if(last_leg < 0) last_leg = leg_count - 1;
+        it[0 + ((last_leg % leg_count) * width)] = ESPColor::BLACK;
+      }
+
+      pin = pin + direction;
+
+      if(pin >= width ){
+        direction = -1;
+        pin = pin + (direction * 2);
+      }
+
+      if(pin < 0){
+        pin =0;
+        direction = 1;
+        leg += 1;
+        leg = leg % leg_count;
+      }
+
+
+- addressable_lambda:
+    name: Cross Pulse
+    update_interval: 30ms
+    lambda:
+      const int leg_count = 4;
+      static int leg;
+      static int pin;
+      static int direction;
+
+      int width = it.size() / leg_count;
+      int last_leg;
+
+      if(initial_run){
+        leg = 0;
+        pin = 0;
+        direction = 1;
+        it.all() = ESPColor::BLACK;
+      }
+
+      for(int l=0;l<leg_count;l++){
+        if(direction > 0) it[pin + (l * width)] = current_color;
+        if(direction < 0) it[pin + (l * width)] = ESPColor::BLACK;
+      }
+
+      pin = pin + direction;
+
+      if(pin >= width || pin < 0 ){
+        direction = direction * -1;
+        pin = pin + (direction);
+      }

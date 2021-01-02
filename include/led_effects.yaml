@@ -1,0 +1,1038 @@
+- addressable_color_wipe:
+- addressable_rainbow:
+- random:
+    transition_length: 10s
+    update_interval: 15s
+- addressable_scan:
+- addressable_fireworks:
+- strobe:
+- strobe:
+    name: Color Strobe
+    colors:
+      - state: True            # green
+        brightness: 100%
+        red: 0%
+        green: 100%
+        blue: 0%
+        duration: 1s
+      - state: False
+        duration: 250ms
+      - state: True           # orange
+        brightness: 50%
+        red: 100%
+        green: 32%
+        blue: 0%
+        duration: 1s
+      - state: False
+        duration: 250ms
+      - state: True           # medium blue
+        brightness: 50%
+        red: 20%
+        green: 60%
+        blue: 100%
+        duration: 1s
+      - state: False
+        duration: 250ms
+      - state: True           # red
+        brightness: 100%
+        red: 100%
+        green: 0%
+        blue: 0%
+        duration: 1s
+      - state: False
+        duration: 250ms
+      - state: True           # auqua
+        brightness: 100%
+        red: 0%
+        green: 100%
+        blue: 100%
+        duration: 1s
+      - state: False          # blue
+        duration: 250ms
+      - state: True
+        brightness: 100%
+        red: 0%
+        green: 0%
+        blue: 100%
+        duration: 1s
+      - state: False
+        duration: 250ms
+      - state: True           # medium green
+        brightness: 50%
+        red: 20%
+        green: 100%
+        blue: 60%
+        duration: 1s
+      - state: False
+        duration: 250ms
+      - state: True           # yellow
+        brightness: 100%
+        red: 100%
+        green: 100%
+        blue: 0%
+        duration: 1s
+      - state: False
+        duration: 250ms
+      - state: True           # purple
+        brightness: 50%
+        red: 64%
+        green: 0%
+        blue: 100%
+        duration: 1s
+      - state: False
+        duration: 250ms
+      - state: True           # pink
+        brightness: 50%
+        red: 100%
+        green: 75%
+        blue: 80%
+        duration: 1s
+      - state: False
+        duration: 250ms
+- addressable_lambda:
+    name: Pink Bee
+    update_interval: 50ms
+    lambda:
+      static int state = 0;
+
+      int width = it.size() * 0.67;
+      if (width > 80){
+        width = 80;
+      }
+
+      for (int i = 0 ; i < it.size() - 1; i++) {
+        it[i] = it[i + 1].get();
+      }
+
+      if(state < width/2){
+        it[it.size() - 1] = ESPColor(248,24,148);
+      } else {
+        it[it.size() - 1] = ESPColor(148,0,211);
+      }
+
+      state += 1;
+      if (state >= width)
+          state = 0;
+
+- addressable_lambda:
+    name: Candy Cane
+    update_interval: 100ms
+    lambda:
+      static int state = 0;
+      const int width = 16;
+
+      for (int i = it.size() - 1; i > 0; i--) {
+        it[i] = it[i - 1].get();
+      }
+
+      if(state < width/2){
+        it[0] = ESPColor(255,0,0);
+      } else {
+        it[0] = ESPColor::WHITE;
+      }
+
+      state += 1;
+      if (state >= width)
+          state = 0;
+
+- addressable_lambda:
+    name: Gradient
+    update_interval: 100ms
+    lambda:
+
+      static int start_red;
+      static int start_green;
+      static int start_blue;
+
+      static int stop_red;
+      static int stop_green;
+      static int stop_blue;
+
+      static float red_step;
+      static float green_step;
+      static float blue_step;
+
+      static int led_index;
+
+      if(initial_run){
+        ESP_LOGD("custom", "Gradient Effect");
+        led_index = 0;
+      }
+
+      if(led_index == 0){
+
+        do {
+
+          start_red = rand() % 255;
+          start_green = rand() % 255;
+          start_blue = rand() % 255;
+
+          stop_red = rand() % 255;
+          stop_green = rand() % 255;
+          stop_blue = rand() % 255;
+
+          red_step = (start_red - stop_red) / float(it.size());
+          green_step = (start_green - stop_green) / float(it.size());
+          blue_step = (start_blue - stop_blue) / float(it.size());
+
+        } while ( (abs(start_red - stop_red) < 200.0 && abs(start_green - stop_green) < 200.0 && abs(start_blue - stop_blue) < 200.0) || (abs(start_red - stop_red) > 20.0 && abs(start_green - stop_green) > 20.0 && abs(start_blue - stop_blue) > 20.0) );
+        // why?  To get strong colors, get two different colors, and avoid the center white zone
+
+        // ESP_LOGD("custom","Red %d %d %f",start_red, stop_red, red_step);
+        // ESP_LOGD("custom","Green %d %d %f",start_green, stop_green, green_step);
+        // ESP_LOGD("custom","Blue %d %d %f",start_blue, stop_blue, blue_step);
+
+      }
+
+      if(led_index < it.size()){
+
+        int new_red = start_red - (red_step * led_index);
+        int new_green = start_green - (green_step * led_index);
+        int new_blue = start_blue - (blue_step * led_index);
+
+        it[led_index] = ESPColor( new_red, new_green, new_blue);
+      }
+
+      led_index++;
+
+      if(led_index >= it.size() * 2){
+        led_index = 0;
+      }
+
+- addressable_lambda:
+    name: Gold Glitter
+    update_interval: 18ms
+    lambda:
+      static int state = 0;
+
+      if (initial_run){
+        state = 0;
+
+        it.all() = ESPColor(218,165,32);
+
+        ESP_LOGD("custom", "Gold Glitter");
+      } else {
+
+        it.all() = ESPColor(218,165,32);
+
+        if(state==0){
+          int i = rand() % it.size();
+          it[i] = ESPColor::WHITE;
+          state += 1;
+        } else {
+          state += 1;
+          state = state % 10;
+        }
+      }
+
+- addressable_lambda:
+    name: Current Glitter
+    update_interval: 18ms
+    lambda:
+      static int state = 0;
+
+      if (initial_run){
+        state = 0;
+
+        it.all() = current_color;
+
+        ESP_LOGD("custom", "Glitter");
+      } else {
+
+        it.all() = current_color;
+
+        if(state==0){
+          int i = rand() % it.size();
+          it[i] = ESPColor::WHITE;
+          state += 1;
+        } else {
+          state += 1;
+          state = state % 10;
+        }
+      }
+
+- addressable_lambda:
+    name: Twinkle
+    update_interval: 75ms
+    lambda:
+      const int light_odds = 2;
+
+      if (initial_run){
+
+        for(int i=0;i<it.size();i++){
+          if(rand() % light_odds == 0){
+            it[i] = ESPColor::random_color();
+          } else {
+            it[i] = ESPColor::BLACK;
+          }
+        }
+        ESP_LOGD("custom", "Twinkle");
+      } else {
+
+        int i = rand() % it.size();
+
+        if(rand() % light_odds == 0){
+          it[i] = ESPColor::random_color();
+        } else {
+          it[i] = ESPColor::BLACK;
+        }
+      }
+
+- addressable_lambda:
+    name: Blue Twinkle
+    update_interval: 75ms
+    lambda:
+      const int light_odds = 2;
+
+      const ESPColor colors[] = {
+        ESPColor(230,230,250),
+        ESPColor(176,224,230),
+        ESPColor(173,216,230),
+        ESPColor(135,206,250),
+        ESPColor(135,206,235),
+        ESPColor(0,191,255),
+        ESPColor(176,196,222),
+        ESPColor(30,144,255),
+        ESPColor(100,149,237),
+        ESPColor(70,130,180),
+        ESPColor(95,158,160),
+        ESPColor(65,105,225),
+        ESPColor(0,0,255),
+        ESPColor(0,0,205),
+        ESPColor(0,0,139),
+        ESPColor(0,0,128),
+        ESPColor(25,25,112),
+      };
+
+      const int color_count = 17;
+
+      if (initial_run){
+
+        for(int i=0;i<it.size();i++){
+          if(rand() % light_odds == 0){
+            it[i] = ESPColor::BLACK;
+          } else {
+            int color_index = rand() % color_count;
+            it[i] = colors[color_index];
+          }
+        }
+      }
+
+      int led_index = rand() % it.size();
+      if(rand() % light_odds == 0){
+        it[led_index] = ESPColor::BLACK;
+      } else {
+        int color_index = rand() % color_count;
+        it[led_index] = colors[color_index];
+      }
+
+- addressable_lambda:
+    name: White Twinkle
+    update_interval: 75ms
+    lambda:
+      const int light_odds = 2;
+
+      if (initial_run){
+
+        for(int i=0;i<it.size();i++){
+          if(rand() % light_odds == 0){
+            it[i] = ESPColor::WHITE;
+          } else {
+            it[i] = ESPColor::BLACK;
+          }
+        }
+        ESP_LOGD("custom", "White Twinkle");
+      } else {
+
+        int i = rand() % it.size();
+
+        if(rand() % light_odds == 0){
+          it[i] = ESPColor::WHITE;
+        } else {
+          it[i] = ESPColor::BLACK;
+        }
+      }
+
+- addressable_lambda:
+    name: Current Twinkle
+    update_interval: 75ms
+    lambda:
+      const int light_odds = 2;
+
+      if (initial_run){
+
+        for(int i=0;i<it.size();i++){
+          if(rand() % light_odds == 0){
+            it[i] = current_color;
+          } else {
+            it[i] = ESPColor::BLACK;
+          }
+        }
+        ESP_LOGD("custom", "Current Twinkle");
+      } else {
+
+        int i = rand() % it.size();
+
+        if(rand() % light_odds == 0){
+          it[i] = current_color;
+        } else {
+          it[i] = ESPColor::BLACK;
+        }
+      }
+
+- addressable_lambda:
+    name: Wheel of Color
+    update_interval: 100ms
+    lambda:
+
+      ESPColor colors[] = { ESPColor(255,0,0),
+                            ESPColor(0,255,0),
+                            ESPColor(255,255,0),
+                            ESPColor(0,0,255),
+                            ESPColor(255,82,0),
+                            ESPColor(163,0,255),
+                            };
+
+      static int state = 0;
+      static int step = 0;
+      const int color_size = 6;
+      static int width = it.size();
+
+      for (int i = it.size() - 1; i > 0; i--) {
+        it[i] = it[i - 1].get();
+      }
+
+      it[0] = colors[state];
+
+      step += 1;
+      if (step >= width){
+        step = 0;
+        state += 1;
+        if (state >= color_size)
+            state = 0;
+      }
+- addressable_lambda:
+    name: Vesuvius
+    update_interval: 50ms
+    lambda:
+
+      ESPColor colors[] = { ESPColor(255,0,0),
+                            ESPColor(0,255,0),
+                            ESPColor(255,255,0),
+                            ESPColor(0,0,255),
+                            ESPColor(255,0,255),
+                            ESPColor(0,255,255),
+                            ESPColor(255,255,255),
+                            ESPColor(0,0,0),
+                            };
+
+      static int color = 0;
+      static int step = 0;
+      const int color_size = 8;
+
+      it[it.size()/2 - step] = colors[color];
+      if(it.size()/2 + step < it.size()){
+        it[it.size()/2 + step] = colors[color];
+      }
+
+      step += 1;
+      if (step > it.size()/2){
+        step = 0;
+        color += 1;
+        if (color >= color_size)
+            color = 0;
+      }
+
+- addressable_lambda:
+    name: Theater Marquee
+    update_interval: 75ms
+    lambda:
+
+      static int step = 0;
+      const int width = 4;
+
+      for (int i = it.size()/2; i >= 0; i--) {
+        if(i % width == step){
+          it[i] = ESPColor::WHITE;
+          it[it.size() - i] = ESPColor::WHITE;
+        } else {
+          it[i] = ESPColor::BLACK;
+          it[it.size() - i] = ESPColor::BLACK;
+        }
+      }
+
+      step += 1;
+      if (step >= width){
+        step = 0;
+      }
+- addressable_lambda:
+    name: Theater Marquee One Way
+    update_interval: 75ms
+    lambda:
+
+      static int step = 0;
+      const int width = 4;
+
+      for (int i = it.size(); i >= 0; i--) {
+        if(i % width == step){
+          it[i] = ESPColor::WHITE;
+        } else {
+          it[i] = ESPColor::BLACK;
+        }
+      }
+
+      step += 1;
+      if (step >= width){
+        step = 0;
+      }
+- addressable_lambda:
+    name: Subway Car
+    update_interval: 80ms
+    lambda:
+
+      static int step = 0;
+      const ESPColor car_color = ESPColor(255,0,0);
+      const ESPColor fill_color = ESPColor(0,127,0);
+
+      for (int i = 0 ;i < it.size(); i++) {
+        it[i] = fill_color;
+      }
+
+      it[step % it.size()] = car_color;
+      it[step + 1 % it.size()] = car_color;
+      it[step + 2 % it.size()] = car_color;
+      it[step + 3 % it.size()] = car_color;
+
+      step += 1;
+      if (step >= it.size()){
+        step = 0;
+      }
+- addressable_lambda:
+    name: Squeeze
+    update_interval: 30ms
+    lambda:
+
+      ESPColor colors[] = { ESPColor(255,0,0),
+                            ESPColor(0,255,0),
+                            ESPColor(255,255,0),
+                            ESPColor(0,0,255),
+                            ESPColor(255,0,255),
+                            ESPColor(0,255,255),
+                            ESPColor(255,255,255),
+                            ESPColor(0,0,0),
+                            };
+
+      static int color = 0;
+      static int step = 0;
+      static int direction = 1;
+      const int color_size = 8;
+
+      it[it.size()/2 - step] = colors[color];
+      if(it.size()/2 + step < it.size()){
+        it[it.size()/2 + step] = colors[color];
+      }
+
+      step += direction;
+      if (step > it.size()/2 || step < 0){
+        direction *= -1;
+        color += 1;
+        if (color >= color_size)
+            color = 0;
+      }
+
+- addressable_lambda:
+    name: Current Scan
+    update_interval: 40ms
+    lambda:
+
+
+      static int step = 0;
+      static int direction = 1;
+
+      if(initial_run){
+        step = 0;
+        direction = 1;
+      }
+
+
+      it[step] = current_color;
+      if(step >0 && step < it.size()){
+        it[step + (direction * -1)] = ESPColor::BLACK;
+      }
+
+      step = step + direction;
+
+      if(step >= it.size() || step < 0){
+        direction = direction * -1;
+        step = step + (direction * 2);
+      }
+
+- addressable_lambda:
+    name: Police
+    update_interval: 250ms
+    lambda: |-
+
+      static int state = 0;
+
+      const int state_count = 4;
+      const int width = 3;
+
+      int i = 0;
+
+      if(initial_run){
+        state = 0;
+        ESP_LOGD("DEBUG","initial run");
+      }
+
+      if(state == 0){
+
+        it.all() = ESPColor::BLACK;
+
+        while(i < it.size()){
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor(255,0,0);
+            }
+          }
+          i += width;
+
+          i += width;
+
+          i += width;
+
+          i += width;
+
+          i += width;
+
+          i += width;
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor(0,0,255);
+            }
+          }
+          i += width;
+        }
+
+        state += 1;
+        state = state % state_count;
+
+      } else if(state == 1){
+
+        it.all() = ESPColor::BLACK;
+
+        while(i < it.size()){
+
+          i += width;
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor(255,0,0);
+            }
+          }
+          i += width;
+
+          i += width;
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor::WHITE;
+            }
+          }
+          i += width;
+
+          i += width;
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor(0,0,255);
+            }
+          }
+          i += width;
+
+          i += width;
+        }
+
+        state += 1;
+        state = state % state_count;
+
+      } else if(state == 2){
+
+        it.all() = ESPColor::BLACK;
+
+        while(i < it.size()){
+
+          i += width;
+
+          i += width;
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor(255,0,0);
+            }
+          }
+          i += width;
+
+          i += width;
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor(0,0,255);
+            }
+          }
+          i += width;
+
+          i += width;
+
+          i += width;
+        }
+
+        state += 1;
+        state = state % state_count;
+
+      } else if(state == 3){
+
+        it.all() = ESPColor::BLACK;
+
+        while(i < it.size()){
+
+          i += width;
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor(255,0,0);
+            }
+          }
+          i += width;
+
+          i += width;
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor::WHITE;
+            }
+          }
+          i += width;
+
+          i += width;
+
+          for( int j = 0; j < width; j++){
+            if(i + j < it.size() && i + j >= 0){
+              it[i + j] = ESPColor(0,0,255);
+            }
+          }
+          i += width;
+
+          i += width;
+        }
+
+        state += 1;
+        state = state % state_count;
+
+      }
+- addressable_lambda:
+    name: Police 2
+    update_interval: 100ms
+    lambda:
+
+      static int sequence;
+      static int state;
+      static int flash_mode;
+      static int flash_count;
+      static int repeat_count;
+      static int even_odd;
+      static int step;
+      static int direction;
+
+      const int repeat_limit = 4;
+
+      const ESPColor s01_fill = ESPColor(255,0,0);
+      const ESPColor s02_fill = ESPColor::WHITE;
+      const ESPColor s03_fill = ESPColor(0,0,255);
+      const ESPColor background_fill = ESPColor::BLACK;
+      const int s0_flash_limit = 3;
+      const int chase_limit = 2;
+
+      static int s0_length;
+      static int s013_start;
+      static int s023_start;
+      static int s033_start;
+
+      if(initial_run){
+        sequence = 0;
+        state = 0;
+        flash_mode = 0;
+        flash_count = 0;
+        repeat_count = 0;
+        even_odd = 0;
+        direction = 1;
+        it.all() = background_fill;
+
+        s0_length = it.size() / 3;
+        if(s0_length > 20){
+          s0_length = 20;
+        }
+        s013_start = it.size()/2 - (s0_length * 1.5);
+        s023_start = s013_start + s0_length;
+        s033_start = s023_start + s0_length;
+
+        step = s023_start;
+      }
+
+      if(sequence==0){
+        if(state==0){
+          if(flash_mode == 1){
+            it.all() = background_fill;
+            flash_mode = 0;
+            flash_count++;
+            if(flash_count >= s0_flash_limit){
+              flash_count = 0;
+              state++;
+            }
+          } else {
+            for(int i=s013_start;i<(s013_start + s0_length);i++){
+              it[i] = s01_fill;
+            }
+            flash_mode = 1;
+          }
+        } else if(state==1){
+          if(flash_mode == 1){
+            it.all() = background_fill;
+            flash_mode = 0;
+            flash_count++;
+            if(flash_count >= s0_flash_limit){
+             flash_count = 0;
+              state++;
+            }
+          } else {
+            for(int i=s033_start;i<(s033_start + s0_length);i++){
+              it[i] = s03_fill;
+            }
+            flash_mode = 1;
+          }
+        } else if(state==2){
+          if(flash_mode == 1){
+            it.all() = background_fill;
+            flash_mode = 0;
+            flash_count++;
+            if(flash_count >= s0_flash_limit){
+              flash_count = 0;
+              state = 0;
+              repeat_count++;
+              if(repeat_count >= repeat_limit){
+                repeat_count = 0;
+                state = 0;
+                flash_mode = 0;
+                flash_count = 0;
+                sequence++;
+              }
+            }
+          } else {
+            for(int i=s013_start;i<(s013_start + s0_length);i++){
+              it[i] = s01_fill;
+            }
+            for(int i=s023_start;i<(s023_start + s0_length);i++){
+              it[i] = s02_fill;
+            }
+            for(int i=s033_start;i<(s033_start + s0_length);i++){
+              it[i] = s03_fill;
+            }
+            flash_mode = 1;
+          }
+        }
+      } else if(sequence == 1){
+        if(state==0){
+          if( even_odd++ % 2 == 0){
+            if(flash_mode == 0){
+              it.all() = background_fill;
+              for(int i=s013_start;i<(s013_start + s0_length/2);i++){
+                it[i] = s01_fill;
+              }
+              for(int i=s033_start + s0_length/2;i<(s033_start + s0_length);i++){
+                it[i] = s03_fill;
+              }
+              flash_mode = 1;
+            } else {
+              it.all() = background_fill;
+              for(int i=s013_start + s0_length/2;i<(s013_start + s0_length);i++){
+                it[i] = s01_fill;
+              }
+              for(int i=s033_start;i<(s033_start + s0_length/2);i++){
+                it[i] = s03_fill;
+              }
+              flash_mode = 0;
+              flash_count++;
+              if(flash_count >= s0_flash_limit){
+                flash_count = 0;
+                state++;
+                it.all() = background_fill;
+              }
+            }
+          }
+        } else if(state == 1) {
+          it[step] = s02_fill;
+          it[it.size() - step] = s02_fill;
+
+          if(step > s023_start && step < (s023_start + s0_length/2)){
+            it[step + (direction * -1)] = background_fill;
+            it[it.size() - (step + (direction * -1))] = background_fill;
+          }
+
+          step = step + direction;
+
+          if(step >= (s023_start + s0_length/2) || step < s023_start){
+            direction = direction * -1;
+            step = step + (direction * 2);
+            if(direction > 0){
+              flash_count++;
+
+              if(flash_count >= chase_limit){
+                flash_count = 0;
+                state = 0;
+                repeat_count++;
+                if(repeat_count >= repeat_limit){
+                  repeat_count = 0;
+                  state = 0;
+                  flash_mode = 0;
+                  flash_count = 0;
+                  sequence=0;
+                }
+              }
+            }
+          }
+        }
+      }
+
+- addressable_lambda:
+    name: Cross Wheel
+    update_interval: 80ms
+    lambda:
+      const int leg_count = 4;
+      static int state = 0;
+
+      int width = it.size() / leg_count;
+      int start;
+
+      it.all() = ESPColor::BLACK;
+
+      start = state * width;
+
+      for (int i = 0 ; i < width; i++) {
+        it[i + start ] = current_color;
+      }
+
+      state += 1;
+      state = state % leg_count;
+
+- addressable_lambda:
+    name: Cross Wheel Oppose
+    update_interval: 500ms
+    lambda:
+      const int leg_count = 4;
+      static int state = 0;
+
+      int width = it.size() / leg_count;
+      int start;
+      int opposite;
+
+      if(initial_run){
+        state = 0;
+      }
+
+      it.all() = ESPColor::BLACK;
+
+      start = state * width;
+
+      for (int i = 0 ; i < width; i++) {
+        it[i + start ] = current_color;
+      }
+
+      opposite = ((state + leg_count/2) % leg_count) * width;
+
+      for (int i = 0 ; i < width; i++) {
+        it[i + opposite ] = current_color;
+      }
+
+      state += 1;
+      state = state % leg_count;
+
+- addressable_lambda:
+    name: Cross Wheel Random
+    update_interval: 80ms
+    lambda:
+      const int leg_count = 4;
+      static int state = 0;
+
+      int width = it.size() / leg_count;
+      int start;
+      ESPColor color;
+
+      color = ESPColor::random_color();
+
+      it.all() = ESPColor::BLACK;
+
+      start = state * width;
+
+      for (int i = 0 ; i < width; i++) {
+        it[i + start ] = color;
+      }
+
+      state += 1;
+      state = state % leg_count;
+
+- addressable_lambda:
+    name: Police 3
+    update_interval: 20ms
+    lambda:
+      static int color_state;
+      static int color_start;
+      static int first_color;
+      static int cycle;
+
+      const int width = 10;
+      const int flash_width = 2;
+      const int cycle_limit = 6;
+
+      int state = 0;
+
+      if(initial_run){
+        state = 0;
+        color_state = 0;
+        color_start = 0;
+        first_color = 0;
+        cycle = 0;
+      }
+
+      state = state + color_start;
+      color_state = first_color;
+
+      for (int i = 0; i < it.size(); i++) {
+        if(color_state == 0){
+          it[i] = ESPColor(255,0,0);
+        } else {
+          it[i] = ESPColor(0,0,255);
+        }
+        if(cycle == 1 && state < flash_width){
+          it[i] = ESPColor::WHITE;
+        }
+
+        state += 1;
+        if(state >= width){
+          state = 0;
+          color_state += 1;
+          color_state = color_state % 2;
+        }
+      }
+
+      cycle += 1;
+      if(cycle >= cycle_limit){
+          cycle = 0;
+          color_start += 1;
+          if(color_start >= width){
+            color_start = 0;
+            first_color += 1;
+            first_color = first_color % 2;
+          }
+      }
+

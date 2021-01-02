@@ -1,0 +1,5 @@
+---
+platform: gpio
+pin: GPIO02
+id: onboard_led
+inverted: True

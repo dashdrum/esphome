@@ -1,0 +1,36 @@
+substitutions:
+  device_name: laundry_motion
+  upper_device_name: Laundry Motion
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+
+binary_sensor:
+  - !include include/pir_GPIO13.yaml
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+  
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
+    

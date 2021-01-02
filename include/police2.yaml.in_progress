@@ -1,0 +1,170 @@
+      - addressable_lambda:
+          name: Police
+          update_interval: 100ms
+          lambda:
+
+            static int sequence;
+            static int state;
+            static int flash_mode;
+            static int flash_count;
+            static int repeat_count;
+            static int even_odd;
+            static int step;
+            static int direction;
+
+            const int repeat_limit = 4;
+
+            const ESPColor s01_fill = ESPColor(255,0,0);
+            const ESPColor s02_fill = ESPColor::WHITE;
+            const ESPColor s03_fill = ESPColor(0,0,255);
+            const ESPColor background_fill = ESPColor::BLACK;
+            const int s0_flash_limit = 3;
+
+            static int s0_length;
+            static int s013_start;
+            static int s023_start;
+            static int s033_start;
+
+            if(initial_run){
+              sequence = 0;
+              state = 0;
+              flash_mode = 0;
+              flash_count = 0;
+              repeat_count = 0;
+              even_odd = 0;
+              direction = 1;
+              it.all() = background_fill;
+
+              s0_length = it.size() / 3;
+              if(s0_length > 20){
+                s0_length = 20;
+              }
+              s013_start = it.size()/2 - (s0_length * 1.5);
+              s023_start = s013_start + s0_length;
+              s033_start = s023_start + s0_length;
+
+              step = s023_start;
+            }
+
+            if(sequence==0){
+              if(state==0){
+                if(flash_mode == 1){
+                  it.all() = background_fill;
+                  flash_mode = 0;
+                  flash_count++;
+                  if(flash_count >= s0_flash_limit){
+                    flash_count = 0;
+                    state++;
+                  }
+                } else {
+                  for(int i=s013_start;i<(s013_start + s0_length);i++){
+                    it[i] = s01_fill;
+                  }
+                  flash_mode = 1;
+                }
+              } else if(state==1){
+                if(flash_mode == 1){
+                  it.all() = background_fill;
+                  flash_mode = 0;
+                  flash_count++;
+                  if(flash_count >= s0_flash_limit){
+                   flash_count = 0;
+                    state++;
+                  }
+                } else {
+                  for(int i=s033_start;i<(s033_start + s0_length);i++){
+                    it[i] = s03_fill;
+                  }
+                  flash_mode = 1;
+                }
+              } else if(state==2){
+                if(flash_mode == 1){
+                  it.all() = background_fill;
+                  flash_mode = 0;
+                  flash_count++;
+                  if(flash_count >= s0_flash_limit){
+                    flash_count = 0;
+                    state = 0;
+                    repeat_count++;
+                    if(repeat_count >= repeat_limit){
+                      repeat_count = 0;
+                      state = 0;
+                      flash_mode = 0;
+                      flash_count = 0;
+                      sequence++;
+                    }
+                  }
+                } else {
+                  for(int i=s013_start;i<(s013_start + s0_length);i++){
+                    it[i] = s01_fill;
+                  }
+                  for(int i=s023_start;i<(s023_start + s0_length);i++){
+                    it[i] = s02_fill;
+                  }
+                  for(int i=s033_start;i<(s033_start + s0_length);i++){
+                    it[i] = s03_fill;
+                  }
+                  flash_mode = 1;
+                }
+              }
+            } else if(sequence == 1){
+              if(state==0){
+                if( even_odd++ % 2 == 0){
+                  if(flash_mode == 0){
+                    it.all() = background_fill;
+                    for(int i=s013_start;i<(s013_start + s0_length/2);i++){
+                      it[i] = s01_fill;
+                    }
+                    for(int i=s033_start + s0_length/2;i<(s033_start + s0_length);i++){
+                      it[i] = s03_fill;
+                    }
+                    flash_mode = 1;
+                  } else {
+                    it.all() = background_fill;
+                    for(int i=s013_start + s0_length/2;i<(s013_start + s0_length);i++){
+                      it[i] = s01_fill;
+                    }
+                    for(int i=s033_start;i<(s033_start + s0_length/2);i++){
+                      it[i] = s03_fill;
+                    }
+                    flash_mode = 0;
+                    flash_count++;
+                    if(flash_count >= s0_flash_limit){
+                      flash_count = 0;
+                      state++;
+                      it.all() = background_fill;
+                    }
+                  }
+                }
+              } else if(state == 1) {
+                it[step] = s02_fill;
+                it[it.size() - step] = s02_fill;
+
+                if(step > s023_start && step < (s023_start + s0_length/2)){
+                  it[step + (direction * -1)] = background_fill;
+                  it[it.size() - (step + (direction * -1))] = background_fill;
+                }
+
+                step = step + direction;
+
+                if(step >= (s023_start + s0_length/2) || step < s023_start){
+                  direction = direction * -1;
+                  step = step + (direction * 2);
+                  if(direction > 0){
+                    flash_count++;
+                    if(flash_count >= s0_flash_limit){
+                      repeat_count++;
+                      if(repeat_count >= repeat_limit){
+                        repeat_count = 0;
+                        state = 0;
+                        flash_mode = 0;
+                        flash_count = 0;
+                        even_odd = 0;
+                        sequence = 0;
+                        step = s023_start;
+                      }
+                    }
+                  }
+                }
+              }
+            }

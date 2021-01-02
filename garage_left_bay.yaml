@@ -1,0 +1,55 @@
+substitutions:
+  device_name: garage_left_bay
+  upper_device_name: Garage Left Bay
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+mqtt: !include include/mqtt.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: INFO
+
+# # Enable Home Assistant API
+# api:
+
+ota:
+
+sensor:
+  - platform: ultrasonic
+    trigger_pin: D1
+    echo_pin: D2
+    id: ultra_sensor
+    update_interval: 1s
+    filters:
+      - delta: 0.05
+
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s 
+
+binary_sensor:
+  - platform: template
+    name: $upper_device_name
+    lambda: |-
+      if (id(ultra_sensor).state < 1.2 ) { // 1.2 meter
+        // Truck is in.
+        return true;
+      } else {
+        // truck is out
+        return false;
+      }
+      
+switch:
+  - platform: restart
+    name: $upper_device_name Restart

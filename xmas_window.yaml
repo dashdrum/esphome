@@ -1,0 +1,58 @@
+substitutions:
+  device_name: xmas_window
+  upper_device_name: Xmas Window
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+  on_boot:
+    then:
+      - light.turn_on:
+          id: $device_name
+          effect: "Twinkle"
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+
+light:
+  - platform: fastled_clockless
+    chipset: WS2811
+    pin: GPIO5
+    num_leds: 50
+    rgb_order: RGB
+    name: $upper_device_name
+    id: $device_name
+    state_topic: $device_name/light/$device_name/state
+    command_topic: $device_name/light/$device_name/command
+    effects: !include include/led_effects.yaml
+ 
+binary_sensor:
+  - !include include/effects_button.yaml
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+  
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
+    
+  - !include include/effects_switch.yaml
+      

@@ -1,0 +1,196 @@
+substitutions:
+  device_name: clock_circle
+  upper_device_name: Clock Circle
+  num_leds: "60"
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+  on_boot:
+    then:
+      - light.turn_on:
+          id: $device_name
+          effect: "Clock"
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+      
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+
+time:
+  - platform: sntp
+    id: esptime
+    timezone: America/Detroit
+    
+light:
+  - platform: fastled_clockless
+    chipset: WS2811
+    pin: GPIO5
+    num_leds: ${num_leds}
+    rgb_order: GRB
+    name: $upper_device_name
+    id: $device_name
+    state_topic: $device_name/light/$device_name/state
+    command_topic: $device_name/light/$device_name/command
+    effects:
+      - addressable_lambda:
+          name: Clock
+          update_interval: 33ms
+          lambda:
+            static int wipe = 0;
+            const ESPColor hour_color = ESPColor(255,0,0);
+            const ESPColor minute_color = ESPColor(0,255,0);
+            const ESPColor second_color = ESPColor(0,0,255);
+            const ESPColor wipe_color = ESPColor(255,165,0);
+            const ESPColor indicator_color = ESPColor(75,0,130);
+            const ESPColor minor_indicator_color = ESPColor(38,0,65);
+            const int top_pixel = it.size() / 2;
+            int hour;
+            int minute;
+            int second;
+            
+            auto time = id(esptime).now();
+            if (!time.is_valid()) {
+              return;
+            }
+            
+            hour = (time.hour % 12) * 5;
+            minute = time.minute;
+            second = time.second;
+            
+            it.all() = ESPColor::BLACK;
+            
+            for(int i = 0; i < it.size();i++){
+              if(i % (it.size() / 12) == 0){
+                it[i] = minor_indicator_color;
+              }
+              if(i % (it.size() / 4) == 0){
+                it[i] = indicator_color;
+              }
+            }
+            
+            if(second < 60){
+              it[second] = second_color;
+            }
+            
+            it[minute] = minute_color;
+            
+            it[hour] = hour_color;
+            
+            if(minute == 59 && second == 59 && wipe < it.size() - 1){
+              for(int i = 0;i < wipe + 1;i++){
+                it[i] = wipe_color;
+              }
+              wipe += 2;
+            } else {
+              wipe = 0;
+            }
+            
+            if(second > 59){
+              it.all() = ESPColor::WHITE;
+            }
+
+      - addressable_lambda:
+          name: Clock2
+          update_interval: 33ms
+          lambda:
+            static int wipe = 0;
+            const ESPColor hour_color = ESPColor(255,0,0);
+            const ESPColor minute_color = ESPColor(0,255,0);
+            const ESPColor second_color = ESPColor(0,0,255);
+            const ESPColor wipe_color = ESPColor(255,165,0);
+            const ESPColor indicator_color = ESPColor(75,0,130);
+            const ESPColor minor_indicator_color = ESPColor(38,0,65);
+            const int top_pixel = it.size() / 2;
+            int hour;
+            int minute;
+            int second;
+            
+            auto time = id(esptime).now();
+            if (!time.is_valid()) {
+              return;
+            }
+            
+            hour = (time.hour % 12) * 5;
+            minute = time.minute;
+            second = time.second;
+            
+            it.all() = ESPColor::BLACK;
+            
+            for(int i = 0; i < it.size();i++){
+              if(i % (it.size() / 12) == 0){
+                it[i] = minor_indicator_color;
+              }
+              if(i % (it.size() / 4) == 0){
+                it[i] = indicator_color;
+              }
+            }
+              
+            for(int i = 0;i <= hour;i++){
+              it[i] = hour_color;
+            }
+            
+            if(minute < hour){
+              for(int i = 0;i <= minute;i++){
+                it[i] = minute_color;
+              }
+            } else {
+              for(int i = hour + 1;i <= minute;i++){
+                it[i] = minute_color;
+              }
+            }
+            
+            if(second != minute && second != hour){
+              if(second < 60){
+                it[second] = second_color;
+              }
+            }
+            
+            if(minute == 59 && second == 59 && wipe < it.size() - 1){
+              for(int i = 0;i < wipe + 1;i++){
+                it[i] = wipe_color;
+              }
+              wipe += 2;
+            } else {
+              wipe = 0;
+            }
+            
+            if(second > 59){
+              it.all() = ESPColor::WHITE;
+            }     
+            
+      - addressable_rainbow:
+          name: "Rainbow Spinner"
+          speed: 8
+          width: "${num_leds}"
+      - addressable_rainbow:
+          name: "Rainbow Fader"
+          speed: 3
+          width: "${num_leds}"
+      - random:
+          name: "Random Slow"
+          transition_length: 30s
+          update_interval: 30s

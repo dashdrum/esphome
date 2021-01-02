@@ -1,0 +1,42 @@
+substitutions:
+  device_name: garage_motion_1
+  upper_device_name: Garage Motion 1
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO13
+    name: $upper_device_name
+    device_class: motion
+    filters:
+      - delayed_on_off: 10000ms
+    state_topic: $device_name/state
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+  
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
+    

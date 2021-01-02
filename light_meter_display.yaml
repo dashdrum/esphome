@@ -1,0 +1,87 @@
+substitutions:
+  device_name: light_meter_display
+  upper_device_name: Light Meter Display
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+    
+i2c:
+      
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
+    
+sensor:
+  
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+    
+  - platform: max44009
+    name: $upper_device_name Light Sensor
+    id: als
+    address: 0x4A
+    update_interval: 2s
+    accuracy_decimals: 2
+    filters:
+      - lambda: |-
+          float pr_delta;
+          if(x < 3) {
+            pr_delta = .4;
+          } else if ( x < 10) {
+            pr_delta = .6;
+          } else if (x < 20) {
+            pr_delta = 1.0;
+          } else if (x < 80) {
+            pr_delta = 1.5;
+          } else {
+            pr_delta = 2.0;
+          }
+          if (isnan(x)) 
+            return {};
+          if (isnan(id(als).state)) 
+            return x;
+          if (fabsf(x - id(als).state) >= pr_delta) 
+            return x;
+          return {};
+
+    
+font:
+  - file: 'fonts/arial.ttf'
+    id: font2
+    size: 36
+
+  - file: 'fonts/arial.ttf'
+    id: font3
+    size: 14
+
+display:
+  - platform: ssd1306_i2c
+    model: "SH1106 128x64"
+    rotation: 180°
+    reset_pin: D0
+    address: 0x3C
+    lambda: |-
+      it.printf(40, 2, id(font3), TextAlign::TOP_CENTER, "Luxmeter");
+
+      it.printf(10, 55, id(font2), TextAlign::BASELINE_LEFT, "%.2f", id(als).state);

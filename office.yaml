@@ -1,0 +1,65 @@
+substitutions:
+  device_name: office
+  upper_device_name: Office
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: WARN
+  
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt_deep_sleep.yaml
+      
+i2c:
+
+sensor:
+
+  - !include include/bme280.yaml
+
+  - platform: adc
+    pin: A0
+    filters:
+      - multiply: 100
+      - median:
+          window_size: 7
+          send_every: 2
+          send_first_at: 1
+    unit_of_measurement: "%"
+    name: $upper_device_name Battery
+    update_interval: 60s
+    expire_after: 60min
+    state_topic: $device_name/battery/state
+
+  # - platform: adc
+  #   pin: A0
+  #   name: $upper_device_name Battery Raw
+  #   update_interval: 60s
+  #   expire_after: 30min
+  #   state_topic: $device_name/battery/raw/state
+
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+    
+# binary_sensor:
+## Status doesn't work because availability is disabled in MQTT
+#   - platform: status
+#     name: $upper_device_name Status
+    
+deep_sleep: !include include/deep_sleep_15.yaml
+
+switch:
+  - platform: restart
+    name: $upper_device_name Restart

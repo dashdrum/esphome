@@ -1,0 +1,9 @@
+broker: !secret mqtt_broker
+username: !secret mqtt_username
+password: !secret mqtt_password
+birth_message:
+  topic: $device_name/availability
+  payload: online
+will_message:
+  topic: $device_name/availability
+  payload: offline

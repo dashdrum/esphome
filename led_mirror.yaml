@@ -1,0 +1,161 @@
+substitutions:
+  device_name: led_mirror
+  upper_device_name: LED Mirror
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: $upper_device_name
+    password: !secret hotspot_password
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+web_server:
+  port: 80
+
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  birth_message:
+    topic: $device_name/availability
+    payload: online
+  will_message:
+    topic: $device_name/availability
+    payload: offline
+  
+globals:
+  - id: g_preset_color
+    type: int
+    initial_value: '0'
+  - id: g_num_presets
+    type: int
+    initial_value: '9'
+  
+light:
+  - platform: rgbw
+    name: "$upper_device_name"
+    id: $device_name
+    state_topic: $device_name/light/led_mirror/state
+    command_topic: $device_name/light/led_mirror/command
+    # availability_topic: led_mirror/status
+    red: output_component_red
+    green: output_component_green
+    blue: output_component_blue
+    white: output_component_white
+    effects:
+      - lambda:
+          name: Random
+          update_interval: 10.0s
+          lambda: |-
+            auto call = id(led_mirror).turn_on();
+            call.set_transition_length(4000);
+            call.set_brightness(0.78);
+            light::ESPColor c = light::ESPColor::random_color();
+            // call.set_rgb((c.red%128)/255.0, (c.green%128)/255.0, (c.blue%128)/255.0);
+            call.set_rgb((c.red)/255.0, (c.green)/255.0, (c.blue)/255.0);
+            call.set_white(0.0);
+            call.perform();
+      - strobe:
+      - flicker:
+      - lambda:
+          name: Presets
+          update_interval: 100ms
+          lambda: |-
+              auto call = id(led_mirror).turn_on();
+              const float presets[9][4] = {
+                // {red, green, blue, white}
+                {1.0, 1.0, 1.0, 1.0},      // Super white
+                {0.2,1.0,0.6, 0.0},           //  medium green
+                {1.0,0.2,0.6, 0.0},           //  pink
+                {0.2,0.6,1.0, 0.0},           //  medium blue
+                {1.0,0.6,0.2, 0.0},           //  orange
+                {0.6,0.2,1.0, 0.0},           //  purple
+                {1.0,1.0,0.4, 0.0},          //  goldenrod
+                {1.0, 0.2, 0, 0.02},       // nightlight
+                {0.1, 0.1, 0.1, 0.1}                //  almost off
+              };
+              call.set_transition_length(0);
+              if(id(g_preset_color) == 0){
+                call.set_brightness(1.0);
+              } else {
+              call.set_brightness(0.5);
+              }
+              call.set_rgbw(presets[id(g_preset_color)][0], presets[id(g_preset_color)][1], presets[id(g_preset_color)][2], presets[id(g_preset_color)][3]);
+              call.perform();
+output:
+  - platform: esp8266_pwm
+    id: output_component_red
+    pin: D5
+    max_power: 100%
+  - platform: esp8266_pwm
+    id: output_component_green
+    pin: D0
+    max_power: 69%
+  - platform: esp8266_pwm
+    id: output_component_blue
+    pin: D6
+    max_power: 94%
+  - platform: esp8266_pwm
+    id: output_component_white
+    pin: D7
+    max_power: 100%
+    
+binary_sensor:
+  - platform: gpio
+    pin: D8
+    id: button_1
+    on_press:
+      then:
+      - lambda: |-
+          auto call = id(led_mirror).turn_on();
+          call.set_effect("Presets");
+          call.perform();
+          id(g_preset_color)++;
+          if(id(g_preset_color)  >= id(g_num_presets)){
+            id(g_preset_color) = 0;
+          }
+    on_click:
+      min_length: 1s
+      max_length: 3s
+      then:
+      - lambda: |-
+          auto call = id(led_mirror).turn_on();
+          call.set_effect("Random");
+          call.perform();
+sensor:
+  - platform: dht
+    pin: D3
+    model: DHT22
+    temperature:
+      name: "Upstairs Bath Temperature"
+      state_topic: $device_name/sensor/upstairs_bath_temperature/state
+    humidity:
+      name: "Upstairs Bath Humidity"
+      state_topic: $device_name/sensor/upstairs_bath_humidity/state
+    update_interval: 5min  
+
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s 
+  
+switch:
+  - platform: restart
+    name: $upper_device_name Restart 

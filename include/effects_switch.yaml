@@ -1,0 +1,43 @@
+---
+platform: template
+name: $upper_device_name Random Effect
+id: random_effect
+turn_on_action:
+  - light.turn_on:
+      id: $device_name
+      effect: !lambda |-
+
+        std::string effects[] = {
+            "Color Wipe",
+            "Candy Cane",
+            "White Twinkle",
+            "Current Twinkle",
+            "Rainbow",
+            "Random",
+            "Scan",
+            "Current Scan",
+            "Blue Scan",
+            "Color Strobe",
+            "Gradient",
+            "Twinkle",
+            "Gold Glitter",
+            "Current Glitter",
+            "Wheel of Color",
+            "Vesuvius",
+            "Theater Marquee",
+            "Theater Marquee One Way",
+            "Subway Car",
+            "Squeeze",
+            "Police",
+            "Police 2",
+            "Police 3",
+            "Pink Bee",
+            "Cross Wheel",
+            "Cross Wheel Oppose",
+            "Cross Wheel Random"
+          };
+        int num_effects = 27;
+
+        int i = rand() % num_effects;
+
+        return effects[i];

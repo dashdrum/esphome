@@ -1,0 +1,101 @@
+substitutions:
+  device_name: garage_door
+  upper_device_name: Garage Door
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: ERROR
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+web_server:
+  port: 80
+
+mqtt: !include include/mqtt.yaml
+
+i2c:
+  sda: D6
+  scl: D5
+
+sensor:
+  - platform: am2320
+    temperature:
+      name: "Garage Temp"
+      expire_after: 30min
+      accuracy_decimals: 2
+      state_topic: $device_name/am2320/temperature/state
+    humidity:
+      name: "Garage Humidity"
+      expire_after: 30min
+      accuracy_decimals: 2
+      state_topic: $device_name/am2320/humidity/state
+    update_interval: 15min
+    
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+    
+switch:
+  - platform: gpio
+    id: door_switch
+    pin: D1
+    restore_mode: ALWAYS_OFF
+
+  - platform: template
+    id: push_button    
+    turn_on_action:
+      - switch.turn_on: door_switch
+      - delay: 600ms
+      - switch.turn_off: door_switch
+      
+  - platform: restart
+    name: $upper_device_name Restart
+    
+binary_sensor:
+  - platform: gpio
+    pin: D7
+    name: "Garage Access Door"
+    device_class: door
+    filters:
+      - delayed_on_off: 20ms
+      - invert:
+    state_topic: $device_name/access_door/state
+    
+  - platform: gpio
+    pin: D2
+    name: "Garage Door"
+    id: garage_door_sensor
+    device_class: door
+    filters:
+      - delayed_on_off: 20ms
+      - invert:
+    state_topic: $device_name/garage_door/state
+
+cover:
+  - platform: template
+    name: "Garage Door"
+    device_class: garage
+    lambda: |-
+      if (id(garage_door_sensor).state) {
+        return COVER_OPEN;
+      } else {
+        return COVER_CLOSED;
+      }
+    open_action:
+      - switch.turn_on: push_button
+    close_action:
+      - switch.turn_on: push_button
+    stop_action:
+      - switch.turn_on: push_button

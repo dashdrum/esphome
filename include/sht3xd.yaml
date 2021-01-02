@@ -1,0 +1,13 @@
+---
+platform: sht3xd
+temperature:
+  name: $upper_device_name Temperature
+  expire_after: 30min
+  accuracy_decimals: 2
+  state_topic: $device_name/sht3xd/temperature/state
+humidity:
+  name: $upper_device_name Humidity
+  expire_after: 30min
+  accuracy_decimals: 2
+  state_topic: $device_name/sht3xd/humidity/state
+update_interval: 15min

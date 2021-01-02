@@ -1,0 +1,18 @@
+---
+platform: gpio
+pin: D8
+id: d8_button
+filters:
+  - delayed_on_off: 10ms
+
+on_click:
+  - min_length: 50ms
+    max_length: 350ms
+    then:
+      switch.turn_on:
+        id: random_effect
+
+  - min_length: 1s
+    max_length: 5s
+    then:
+    - light.toggle: $device_name

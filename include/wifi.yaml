@@ -1,0 +1,7 @@
+ssid: !secret wifi_ssid
+password: !secret wifi_password
+
+# Enable fallback hotspot (captive portal) in case wifi connection fails
+ap:
+  ssid: $upper_device_name
+  password: !secret hotspot_password

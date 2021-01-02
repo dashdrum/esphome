@@ -1,0 +1,44 @@
+substitutions:
+  device_name: undercabinet_button
+  upper_device_name: Undercabinet Button
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+
+binary_sensor:
+  - platform: gpio
+    pin: D8
+    id: d8_button
+    name: $upper_device_name Push
+    filters:
+      - delayed_on_off: 10ms
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+  
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
+    
