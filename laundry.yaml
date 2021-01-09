@@ -76,6 +76,12 @@ sensor:
     #   name: "MPU6050 Gyro z"
     temperature:
       id: mpu_temp
+      name: $upper_device_name MPU Temperature
+      filters:
+        - sliding_window_moving_average:
+            window_size: 2000
+            send_every: 9000
+        - delta: 0.5
     update_interval: 100ms
     
   - platform: template
