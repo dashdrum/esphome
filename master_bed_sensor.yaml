@@ -42,13 +42,14 @@ output:
 
 esp32_touch:
   # setup_mode: true
+  iir_filter: 100ms
    
 # All the pressure mats
 binary_sensor:
   - platform: esp32_touch
     name: $upper_device_name Pad1
     pin: GPIO13
-    threshold: 7
+    threshold: 6
     id: pad1
   - platform: esp32_touch
     name: $upper_device_name Pad2
