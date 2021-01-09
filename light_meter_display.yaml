@@ -54,8 +54,10 @@ sensor:
             pr_delta = 1.0;
           } else if (x < 80) {
             pr_delta = 1.5;
-          } else {
+          } else if (x < 200) {
             pr_delta = 2.0;
+          } else {
+            pr_delta = 3.0;
           }
           if (isnan(x)) 
             return {};
