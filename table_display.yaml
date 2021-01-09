@@ -35,15 +35,6 @@ switch:
     name: $upper_device_name Restart
     
 sensor:
-  # - platform: homeassistant
-  #   id: inside_temperature
-  #   entity_id: sensor.living_room_temperature
-  #   internal: true
-
-  # - platform: homeassistant
-  #   id: outside_temperature
-  #   entity_id: sensor.dark_sky_temperature
-  #   internal: true
 
   - platform: mqtt_subscribe
     id: inside_temperature_2
@@ -81,19 +72,62 @@ display:
     model: "SH1106 128x64"
     reset_pin: D0
     address: 0x3C
-    lambda: |-
-      // Print "Living Room" in top center.
-      it.printf(64, 0, id(font1), TextAlign::TOP_CENTER, "Living Room");
-
-      // Print time in HH:MM format
-      it.strftime(0, 55, id(font2), TextAlign::BASELINE_LEFT, "%I:%M", id(esptime).now());
-
-      // Print inside temperature (from homeassistant sensor)
-      if (id(inside_temperature_2).has_state()) {
-        it.printf(127, 23, id(font3), TextAlign::TOP_RIGHT , "%.1f°", id(inside_temperature_2).state);
-      }
-
-      // Print outside temperature (from homeassistant sensor)
-      if (id(outside_temperature_2).has_state()) {
-        it.printf(127, 60, id(font3), TextAlign::BASELINE_RIGHT , "%.1f°", id(outside_temperature_2).state);
-      }
+    id: screen 
+    pages:
+      - id: full_page
+        lambda: |-
+          // Print "Living Room" in top center.
+          it.printf(64, 0, id(font1), TextAlign::TOP_CENTER, "Living Room");
+    
+          // Print time in HH:MM format
+          it.strftime(0, 55, id(font2), TextAlign::BASELINE_LEFT, "%I:%M", id(esptime).now());
+    
+          // Print inside temperature (from homeassistant sensor)
+          if (id(inside_temperature_2).has_state()) {
+            it.printf(127, 23, id(font3), TextAlign::TOP_RIGHT , "%.1f°", id(inside_temperature_2).state);
+          }
+    
+          // Print outside temperature (from homeassistant sensor)
+          if (id(outside_temperature_2).has_state()) {
+            it.printf(127, 60, id(font3), TextAlign::BASELINE_RIGHT , "%.1f°", id(outside_temperature_2).state);
+          }
+      - id: indoor_temp
+        lambda: |-
+          // Print "Living Room" in top center.
+          it.printf(64, 0, id(font1), TextAlign::TOP_CENTER, "Living Room");
+    
+          // Print inside temperature (from homeassistant sensor)
+          if (id(inside_temperature_2).has_state()) {
+            it.printf(0,55, id(font2), TextAlign::BASELINE_LEFT , "%.1f°", id(inside_temperature_2).state);
+          }
+    
+          // Print time in HH:MM format
+          it.strftime(127,23 , id(font3), TextAlign::TOP_RIGHT, "%I:%M", id(esptime).now());
+    
+          // Print outside temperature (from homeassistant sensor)
+          if (id(outside_temperature_2).has_state()) {
+            it.printf(127, 60, id(font3), TextAlign::BASELINE_RIGHT , "%.1f°", id(outside_temperature_2).state);
+          }
+      - id: outdoor_temp
+        lambda: |-
+          // Print "Living Room" in top center.
+          it.printf(64, 0, id(font1), TextAlign::TOP_CENTER, "Living Room");
+    
+          // Print outside temperature (from homeassistant sensor)
+          if (id(outside_temperature_2).has_state()) {
+            it.printf(0,55, id(font2), TextAlign::BASELINE_LEFT , "%.1f°", id(outside_temperature_2).state);
+          }
+    
+          // Print inside temperature (from homeassistant sensor)
+          if (id(inside_temperature_2).has_state()) {
+            it.printf(127, 23, id(font3), TextAlign::TOP_RIGHT , "%.1f°", id(inside_temperature_2).state);
+          }
+    
+          // Print time in HH:MM format
+          it.strftime(127,60 , id(font3), TextAlign::BASELINE_RIGHT, "%I:%M", id(esptime).now());
+        
+interval:
+  - interval: 5s
+    then:
+      - display.page.show_next: screen
+      - component.update: screen
