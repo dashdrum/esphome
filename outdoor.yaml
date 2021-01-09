@@ -50,4 +50,4 @@ switch:
   - platform: restart
     name: $upper_device_name Restart
     
-deep_sleep: !include include/deep_sleep_30.yaml
+deep_sleep: !include include/deep_sleep_15.yaml
