@@ -1,0 +1,58 @@
+substitutions:
+  device_name: workshop
+  upper_device_name: Workshop
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+web_server:
+  port: 80
+
+mqtt: !include include/mqtt_deep_sleep.yaml
+
+sensor:
+  - platform: dht
+    pin:
+      number: D2
+    model: DHT22
+    temperature:
+      name: $upper_device_name Temperature
+    humidity:
+      name: $upper_device_name Humidity
+    update_interval: 60s
+
+  - platform: adc
+    pin: A0
+    filters:
+      - multiply: 100
+    unit_of_measurement: "%"
+    icon: mdi:battery
+    name: $upper_device_name Battery
+    update_interval: 60s
+    expire_after: 30min
+    state_topic: $device_name/battery/state
+    
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+  
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
+    
+deep_sleep: !include include/deep_sleep_30.yaml
