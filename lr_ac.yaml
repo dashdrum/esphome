@@ -29,7 +29,7 @@ mqtt: !include include/mqtt.yaml
     
 output: !include include/onboard_led.yaml
     
-<<: !include include/fujitsu_climate.yaml 
+<<: !include include/fujitsu_climate.yaml
     
 sensor:
   - platform: wifi_signal

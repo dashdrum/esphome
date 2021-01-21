@@ -6,10 +6,10 @@ esphome:
   name: $device_name
   platform: ESP32
   board: esp32doit-devkit-v1
+  # platform: ESP8266
+  # board: d1_mini
 
 wifi: !include include/wifi.yaml
-
-## Note: I had to enable "multicast routing" on my router for mDNS to work for the ESP32S Devkit-v1
 
 captive_portal:
 
@@ -35,66 +35,113 @@ sensor:
     name: $upper_device_name WiFi Signal
     update_interval: 600s
     
+    # Example configuration entry
+  # - platform: resistance
+  #   sensor: source_sensor
+  #   configuration: UPSTREAM
+  #   reference_voltage: 5.0V
+  #   resistor: 1.0MOhm
+  #   name: Resistance Sensor
+
+  - platform: adc
+    id: left_fsr
+    name: adc_sensor
+    pin: 33
+    attenuation: 11db
+    update_interval: 100ms
+    filters:
+      - exponential_moving_average:
+          alpha: 0.1
+          send_every: 10
+      - delta: 0.1
+    
 output: 
   platform: gpio
   pin: GPIO02
   id: onboard_led
+  # inverted: true
+  
+light:
+  - platform: binary
+    name: $upper_device_name Onboard LED
+    output: onboard_led
 
-esp32_touch:
-  # setup_mode: true
-  iir_filter: 100ms
+# esp32_touch:
+#   # setup_mode: true
+#   iir_filter: 100ms
    
-# All the pressure mats
+# # All the pressure mats
 binary_sensor:
-  - platform: esp32_touch
-    name: $upper_device_name Pad1
-    pin: GPIO13
-    threshold: 6
-    id: pad1
-  - platform: esp32_touch
-    name: $upper_device_name Pad2
-    pin: GPIO27
-    threshold: 7
-    id: pad2
-  - platform: esp32_touch
-    name: $upper_device_name Pad3
-    pin: GPIO12
-    threshold: 7
-    id: pad3
-  - platform: esp32_touch
-    name: $upper_device_name Pad4
-    pin: GPIO14
-    threshold: 6
-    id: pad4
+#   - platform: esp32_touch
+#     name: $upper_device_name Pad1
+#     pin: GPIO13
+#     threshold: 6
+#     id: pad1
+#   - platform: esp32_touch
+#     name: $upper_device_name Pad2
+#     pin: GPIO27
+#     threshold: 7
+#     id: pad2
+#   - platform: esp32_touch
+#     name: $upper_device_name Pad3
+#     pin: GPIO12
+#     threshold: 7
+#     id: pad3
+#   - platform: esp32_touch
+#     name: $upper_device_name Pad4
+#     pin: GPIO14
+#     threshold: 6
+#     id: pad4
+     
+# # The main sensors that are created using the all the zones    
+#   - platform: template
+#     name: $upper_device_name Entire Bed
+#     lambda: |-
+#       if (id(pad1).state || id(pad2).state
+#           || id(pad3).state || id(pad4).state )  {
+#         id(onboard_led).turn_on();
+#         return true;
+#       } else {
+#         id(onboard_led).turn_off();
+#         return false;
+#       }    
+      
+#   - platform: template
+#     name: $upper_device_name Left Side
+#     lambda: |-
+#       if (id(pad1).state || id(pad2).state)  {
+#         return true;
+#       } else {
+#         return false;
+#       }    
+      
+#   - platform: template
+#     name: $upper_device_name Right Side
+#     lambda: |-
+#         if (id(pad3).state || id(pad4).state )  {
+#           return true;
+#         } else {
+#           return false;
+#         }    
+
+  - platform: template
+    name: $upper_device_name Left Side
+    id: left_side
+    lambda: |-
+      if (id(left_fsr).state > 2.0)  {
+        return true;
+      } else {
+        return false;
+      }    
      
 # The main sensors that are created using the all the zones    
   - platform: template
     name: $upper_device_name Entire Bed
     lambda: |-
-      if (id(pad1).state || id(pad2).state
-          || id(pad3).state || id(pad4).state )  {
+      if (id(left_side).state  )  {
         id(onboard_led).turn_on();
         return true;
       } else {
         id(onboard_led).turn_off();
         return false;
       }    
-      
-  - platform: template
-    name: $upper_device_name Left Side
-    lambda: |-
-      if (id(pad1).state || id(pad2).state)  {
-        return true;
-      } else {
-        return false;
-      }    
-      
-  - platform: template
-    name: $upper_device_name Right Side
-    lambda: |-
-        if (id(pad3).state || id(pad4).state )  {
-          return true;
-        } else {
-          return false;
-        }    
-    

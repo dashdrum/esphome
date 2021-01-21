@@ -127,7 +127,7 @@ display:
           it.strftime(127,60 , id(font3), TextAlign::BASELINE_RIGHT, "%I:%M", id(esptime).now());
         
 interval:
-  - interval: 5s
+  - interval: 3s
     then:
       - display.page.show_next: screen
       - component.update: screen

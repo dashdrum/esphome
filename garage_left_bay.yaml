@@ -27,12 +27,21 @@ ota:
 
 sensor:
   - platform: ultrasonic
+    name: HC-SR04
     trigger_pin: D1
     echo_pin: D2
+    timeout: 2.7m  #greater than garage height
     id: ultra_sensor
-    update_interval: 1s
+    update_interval: 500ms
     filters:
-      - delta: 0.05
+      ## Catch NAN and replace with actual height of garage
+      - lambda:
+          if (isnan(x)) return 2.65;
+          return x;
+      - exponential_moving_average:
+          alpha: 0.1
+          send_every: 10
+      - delta: 0.1
 
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal

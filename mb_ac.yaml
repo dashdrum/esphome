@@ -30,6 +30,19 @@ mqtt: !include include/mqtt.yaml
 output: !include include/onboard_led.yaml
     
 <<: !include include/fujitsu_climate.yaml 
+
+# ---
+# remote_transmitter:
+#   pin: D2
+#   carrier_duty_percent: 50%
+#   id: $device_name
+
+# climate:
+#   - platform: fujitsu_general
+#     name: $upper_device_name
+#     id: $climate_id
+#     transmitter_id: $device_name
+#     internal: true
     
 sensor:
   - platform: wifi_signal
@@ -37,3 +50,17 @@ sensor:
     update_interval: 60s
       
 switch: !include include/fujitsu_switches.yaml
+
+# - platform: template
+#   name: $switch_prefix 72
+#   turn_on_action:
+#     - climate.control:
+#         id: $climate_id
+#         mode: COOL
+#         target_temperature: 72°F
+#         fan_mode: AUTO
+#         swing_mode: VERTICAL
+#     - output.turn_on: onboard_led
+#     - delay: 250ms
+#     - output.turn_off: onboard_led
+    

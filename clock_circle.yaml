@@ -51,10 +51,21 @@ light:
     pin: GPIO5
     num_leds: ${num_leds}
     rgb_order: GRB
-    name: $upper_device_name
+    id: led_circle
+    internal: true
+    
+## Using a partition light to set the "12" setting of the clock at something 
+## other than 0 on the circle   
+  - platform: partition
     id: $device_name
-    state_topic: $device_name/light/$device_name/state
-    command_topic: $device_name/light/$device_name/command
+    name: $upper_device_name
+    segments:
+      - id: led_circle
+        from: 30
+        to: 59
+      - id: led_circle
+        from: 0
+        to: 29
     effects:
       - addressable_lambda:
           name: Clock
