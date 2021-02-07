@@ -1,0 +1,13 @@
+---
+platform: template
+name: $upper_device_name Dew Point
+id: bme280_dew_point
+lambda: |-
+  ESP_LOGD("DEBUG","Temp, Humid:  %.2f, %.2f", id(bme280_temperature).state,id(bme280_humidity).state);
+  return 243.04*(log(float(id(bme280_humidity).state)/100)+((17.625*float(id(bme280_temperature).state))/(243.04+float(id(bme280_temperature).state))))
+          /(17.625-log(float(id(bme280_humidity).state)/100)-((17.625*float(id(bme280_temperature).state))/(243.04+float(id(bme280_temperature).state))));
+update_interval: 60s
+unit_of_measurement: '°C'
+expire_after: 30min
+accuracy_decimals: 2
+state_topic: $device_name/dew_point/state

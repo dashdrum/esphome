@@ -6,8 +6,23 @@ esphome:
   name: $device_name
   platform: ESP8266
   board: d1_mini_pro
+  on_boot:
+    priority: 500.00
+    then:
+      - delay: 500ms
 
-wifi: !include include/wifi.yaml
+# wifi: !include include/wifi.yaml
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+  reboot_timeout: 10s
+  # output_power: 15dB
+  # manual_ip:
+  #   static_ip: 192.168.1.51
+  #   gateway: 192.168.1.1
+  #   subnet: 255.255.255.0
 
 captive_portal:
 
@@ -30,6 +45,7 @@ i2c:
 sensor:
   - !include include/bme280.yaml
   - !include include/bme280_sea_level_pressure.yaml
+  - !include include/bme280_dew_point.yaml
 
   - platform: adc
     pin: A0

@@ -13,7 +13,7 @@ captive_portal:
 
 # Enable logging
 logger:
-  level: WARN
+  level: DEBUG
   
 # Enable Home Assistant API
 # api:
@@ -27,6 +27,8 @@ i2c:
 sensor:
 
   - !include include/bme280.yaml
+  - !include include/bme280_sea_level_pressure.yaml
+  - !include include/bme280_dew_point.yaml
 
   - platform: adc
     pin: A0
