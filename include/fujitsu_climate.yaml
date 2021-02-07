@@ -9,4 +9,6 @@ climate:
     name: $upper_device_name
     id: $climate_id
     transmitter_id: $device_name
-    internal: true
+#    internal: true
+    supports_cool: true
+    supports_heat: false
