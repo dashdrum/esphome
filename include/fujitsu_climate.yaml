@@ -11,4 +11,5 @@ climate:
     transmitter_id: $device_name
 #    internal: true
     supports_cool: true
-    supports_heat: false
+    supports_heat: true
+    discovery: false
