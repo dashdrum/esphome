@@ -20,6 +20,9 @@ logger:
 
 ota:
 
+web_server:
+  port: 80
+
 mqtt: !include include/mqtt_deep_sleep.yaml
 
 i2c:
@@ -35,7 +38,7 @@ sensor:
     icon: mdi:battery
     name: $upper_device_name Battery
     update_interval: 60s
-    expire_after: 30min
+    expire_after: 60min
     state_topic: $device_name/battery/state
 
   - platform: wifi_signal

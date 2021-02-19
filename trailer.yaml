@@ -42,6 +42,7 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
+    state_topic: $device_name/sensor/wifi_signal/state
     
 deep_sleep: !include include/deep_sleep_30.yaml
 

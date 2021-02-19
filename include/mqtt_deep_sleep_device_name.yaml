@@ -1,0 +1,19 @@
+broker: !secret mqtt_broker
+username: !secret mqtt_username
+password: !secret mqtt_password
+# Needed when using deep sleep mode
+birth_message:
+  topic: " "
+  payload: disabled
+will_message:
+  topic: " "
+  payload: disabled
+on_message:
+  - topic: $device_name/defeat_sleep/state
+    payload: 'on'
+    then:
+      - deep_sleep.prevent: deep_sleep_1
+  - topic: $device_name/defeat_sleep/state
+    payload: 'off'
+    then:
+      - deep_sleep.enter: deep_sleep_1

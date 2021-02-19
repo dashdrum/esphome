@@ -38,7 +38,7 @@ sensor:
 
   - platform: mqtt_subscribe
     id: inside_temperature_2
-    topic: lr/sht3xd/temperature/state
+    topic: lr/temperature/state
     filters:
       - lambda: return x * (9.0/5.0) + 32.0;
 

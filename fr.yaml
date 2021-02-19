@@ -19,6 +19,9 @@ logger:
 
 ota:
 
+web_server:
+  port: 80
+
 mqtt: !include include/mqtt_deep_sleep.yaml
 
 i2c:
