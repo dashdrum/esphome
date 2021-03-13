@@ -44,6 +44,7 @@ sensor:
     update_interval: 2s
     accuracy_decimals: 2
     filters:
+      - filter_out: -30.0
       - lambda: |-
           float pr_delta;
           if(x < 3) {
