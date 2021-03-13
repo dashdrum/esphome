@@ -1,0 +1,63 @@
+substitutions:
+  device_name: air_quality
+  upper_device_name: Air Quality
+
+esphome:
+  name: $device_name
+  platform: ESP32
+  board: wemos_d1_mini32
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+      
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
+    
+i2c:
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+
+  - platform: sgp30
+    eco2:
+      name: $upper_device_name eCO2
+      accuracy_decimals: 1
+    tvoc:
+      name: $upper_device_name TVOC
+      accuracy_decimals: 1
+    address: 0x58
+    update_interval: 60s
+    compensation:
+      temperature_source: temp
+      humidity_source: humid
+    baseline:
+      eco2_baseline: 0x8A4A
+      tvoc_baseline: 0x9019
+    
+  - platform: am2320
+    temperature:
+      name: $upper_device_name Temperature
+      id: temp
+    humidity:
+      name: $upper_device_name Humidity
+      id: humid
+    address: 0x5c
+    update_interval: 60s
