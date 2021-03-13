@@ -6,7 +6,8 @@ esphome:
   name: $device_name
   platform: ESP32
   # board: esp32doit-devkit-v1
-  board: esp32dev
+  # board: esp32dev
+  board: wemos_d1_mini32
 
 wifi: !include include/wifi.yaml
 
@@ -37,89 +38,22 @@ sensor:
     name: $upper_device_name WiFi Signal
     update_interval: 60s
 
-output:
-  platform: gpio
-  pin: 2
-  id: onboard_led
-  # inverted: True
-  
-light:
-  - platform: binary
-    name: $upper_device_name Onboard LED
-    output: onboard_led
-
-
-  # - platform: fastled_clockless
-  #   chipset: WS2811
-  #   pin: GPIO15
-  #   num_leds: 10
-  #   rgb_order: GRB
-  #   name: $upper_device_name LED one strip
-  #   id: $device_name
-  #   state_topic: $device_name/light/$device_name/state
-  #   command_topic: $device_name/light/$device_name/command
-  #   effects: !include include/led_effects.yaml
-
-  - platform: fastled_clockless
-    chipset: WS2811
-    pin: GPIO02
-    num_leds: 37
-    rgb_order: GRB
-    name: $upper_device_name LED seg 0
-    id: led_seqment_0
-    state_topic: $device_name/light/led_seqment_0/state
-    command_topic: $device_name/light/led_seqment_0/command
-    effects: !include include/led_effects.yaml
-
-  - platform: fastled_clockless
-    chipset: WS2811
-    pin: GPIO15
-    num_leds: 37
-    rgb_order: GRB
-    name: $upper_device_name LED seg 1
-    id: led_seqment_1
-    state_topic: $device_name/light/led_seqment_1/state
-    command_topic: $device_name/light/led_seqment_1/command
-    effects: !include include/led_effects.yaml
-
-  - platform: fastled_clockless
-    chipset: WS2811
-    pin: GPIO12
-    num_leds: 37
-    rgb_order: GRB
-    name: $upper_device_name LED seg 2
-    id: led_seqment_2
-    state_topic: $device_name/light/led_seqment_2/state
-    command_topic: $device_name/light/led_seqment_2/command
-    effects: !include include/led_effects.yaml
-
-  - platform: fastled_clockless
-    chipset: WS2811
-    pin: GPIO13
-    num_leds: 37
-    rgb_order: GRB
-    name: $upper_device_name LED seg 3
-    id: led_seqment_3
-    state_topic: $device_name/light/led_seqment_3/state
-    command_topic: $device_name/light/led_seqment_3/command
-    effects: !include include/led_effects.yaml
-    
-  - platform: partition
-    name: $upper_device_name LED Partition Light
-    segments:
-      - id: led_seqment_0
-        from: 0
-        to: 36
-      - id: led_seqment_1
-        from: 0
-        to: 36
-      - id: led_seqment_2
-        from: 0
-        to: 36
-      - id: led_seqment_3
-        from: 0
-        to: 36
-    state_topic: $device_name/light/partition/state
-    command_topic: $device_name/light/partition/command
-    effects: !include include/led_effects.yaml
-    
+esp32_ble_tracker:
+  # on_ble_advertise:
+  #   then:
+  #     - lambda: |-
+  #         ESP_LOGD("ble_adv", "New BLE device");
+  #         ESP_LOGD("ble_adv", "  address: %s", x.address_str().c_str());
+  #         ESP_LOGD("ble_adv", "  name: %s", x.get_name().c_str());
+  #         ESP_LOGD("ble_adv", "  Advertised service UUIDs:");
+  #         for (auto uuid : x.get_service_uuids()) {
+  #             ESP_LOGD("ble_adv", "    - %s", uuid.to_string().c_str());
+  #         }
+  #         ESP_LOGD("ble_adv", "  Advertised service data:");
+  #         for (auto data : x.get_service_datas()) {
+  #             ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
+  #         }
+  #         ESP_LOGD("ble_adv", "  Advertised manufacturer data:");
+  #         for (auto data : x.get_manufacturer_datas()) {
+  #             ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
+  #         }
