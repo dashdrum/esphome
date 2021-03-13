@@ -1,7 +1,6 @@
 substitutions:
   device_name: clock_circle
   upper_device_name: Clock Circle
-  num_leds: "60"
 
 esphome:
   name: $device_name
@@ -35,6 +34,47 @@ switch:
   - platform: restart
     name: $upper_device_name Restart
     
+  - platform: template
+    name: $upper_device_name Random Effect
+    id: random_effect
+    turn_on_action:
+      - light.turn_on:
+          id: $device_name
+          effect: !lambda |-
+    
+            std::string effects[] = {
+                "Clock",
+                "Candy Cane",
+                "Theater Marquee",
+                "Police 3",
+                "Rainbow Spinner",
+                "Color Test"
+              };
+            int num_effects = 6;
+    
+            int i = rand() % num_effects;
+    
+            return effects[i];
+            
+binary_sensor:
+  - platform: gpio
+    pin: D8
+    id: d8_button
+    filters:
+      - delayed_on_off: 10ms
+    
+    on_click:
+      - min_length: 50ms
+        max_length: 350ms
+        then:
+          switch.turn_on:
+            id: random_effect
+    
+      - min_length: 1s
+        max_length: 5s
+        then:
+        - light.toggle: $device_name
+    
 sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
@@ -44,18 +84,22 @@ time:
   - platform: sntp
     id: esptime
     timezone: America/Detroit
+    servers:
+      - 192.168.254.118
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
     
 light:
   - platform: fastled_clockless
     chipset: WS2811
     pin: GPIO5
-    num_leds: ${num_leds}
+    num_leds: 60
     rgb_order: GRB
     id: led_circle
     internal: true
     
 ## Using a partition light to set the "12" setting of the clock at something 
-## other than 0 on the circle   
+## other than 0 on the circle. Adjust the from: and to: settings as needed.
   - platform: partition
     id: $device_name
     name: $upper_device_name
@@ -66,22 +110,41 @@ light:
       - id: led_circle
         from: 0
         to: 29
+    on_turn_on:
+      then:
+        - light.turn_on:
+            id: $device_name
+            effect: "Clock"
     effects:
       - addressable_lambda:
           name: Clock
           update_interval: 33ms
           lambda:
             static int wipe = 0;
+            static int noon_wipe = 0;
+            static int step;
+            static int hour_loc = 0;
+            static int min_loc = 0;
+            static boolean first_wipe = false;
             const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,255,0);
-            const ESPColor second_color = ESPColor(0,0,255);
+            const ESPColor minute_color = ESPColor(0,200,0);
+            const ESPColor second_color = ESPColor(128,118,0);
             const ESPColor wipe_color = ESPColor(255,165,0);
+            const ESPColor paun_wipe_color = ESPColor(179,124,0);
+            const ESPColor half_wipe_color = ESPColor(128,83,0);
+            const ESPColor quart_wipe_color = ESPColor(64,41,0);
+            const ESPColor eighth_wipe_color = ESPColor(32,20,0);
             const ESPColor indicator_color = ESPColor(75,0,130);
             const ESPColor minor_indicator_color = ESPColor(38,0,65);
             const int top_pixel = it.size() / 2;
             int hour;
+            int hour_adj;
             int minute;
             int second;
+            
+            if(initial_run){
+              first_wipe = true;
+            }
             
             auto time = id(esptime).now();
             if (!time.is_valid()) {
@@ -92,116 +155,264 @@ light:
             minute = time.minute;
             second = time.second;
             
-            it.all() = ESPColor::BLACK;
-            
-            for(int i = 0; i < it.size();i++){
-              if(i % (it.size() / 12) == 0){
-                it[i] = minor_indicator_color;
-              }
-              if(i % (it.size() / 4) == 0){
-                it[i] = indicator_color;
-              }
-            }
-            
-            if(second < 60){
-              it[second] = second_color;
-            }
-            
-            it[minute] = minute_color;
-            
-            it[hour] = hour_color;
-            
-            if(minute == 59 && second == 59 && wipe < it.size() - 1){
-              for(int i = 0;i < wipe + 1;i++){
-                it[i] = wipe_color;
-              }
-              wipe += 2;
-            } else {
-              wipe = 0;
-            }
-            
-            if(second > 59){
-              it.all() = ESPColor::WHITE;
-            }
-
-      - addressable_lambda:
-          name: Clock2
-          update_interval: 33ms
-          lambda:
-            static int wipe = 0;
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,255,0);
-            const ESPColor second_color = ESPColor(0,0,255);
-            const ESPColor wipe_color = ESPColor(255,165,0);
-            const ESPColor indicator_color = ESPColor(75,0,130);
-            const ESPColor minor_indicator_color = ESPColor(38,0,65);
-            const int top_pixel = it.size() / 2;
-            int hour;
-            int minute;
-            int second;
-            
-            auto time = id(esptime).now();
-            if (!time.is_valid()) {
-              return;
-            }
-            
-            hour = (time.hour % 12) * 5;
-            minute = time.minute;
-            second = time.second;
+            hour_adj = 5 * minute / 60;
+            hour = hour + hour_adj;
             
             it.all() = ESPColor::BLACK;
             
-            for(int i = 0; i < it.size();i++){
-              if(i % (it.size() / 12) == 0){
-                it[i] = minor_indicator_color;
+            if(first_wipe){
+              if(wipe < it.size() - 1){
+                for(int i = 0;i < wipe + 1;i++){
+                  it[i] = ESPColor::BLACK;
+                  if(i % (it.size() / 12) == 0){
+                  it[i] = minor_indicator_color;
+                  }
+                  if(i % (it.size() / 4) == 0){
+                    it[i] = indicator_color;
+                  }
+                  if(i == second){
+                    it[i] = second_color;
+                  }
+                  if(i == minute){
+                    it[i] = minute_color;
+                  }
+                  if(i == hour){
+                    it[i] = hour_color;
+                  }
+                }
+                wipe += 1;
+              } else {
+                wipe = 0;
+                first_wipe = false;
               }
-              if(i % (it.size() / 4) == 0){
-                it[i] = indicator_color;
+            } 
+            
+            if(first_wipe == false){
+            
+              for(int i = 0; i < it.size();i++){
+                if(i % (it.size() / 12) == 0){
+                  it[i] = minor_indicator_color;
+                }
+                if(i % (it.size() / 4) == 0){
+                  it[i] = indicator_color;
+                }
               }
-            }
               
-            for(int i = 0;i <= hour;i++){
-              it[i] = hour_color;
-            }
-            
-            if(minute < hour){
-              for(int i = 0;i <= minute;i++){
-                it[i] = minute_color;
-              }
-            } else {
-              for(int i = hour + 1;i <= minute;i++){
-                it[i] = minute_color;
-              }
-            }
-            
-            if(second != minute && second != hour){
               if(second < 60){
                 it[second] = second_color;
               }
-            }
-            
-            if(minute == 59 && second == 59 && wipe < it.size() - 1){
-              for(int i = 0;i < wipe + 1;i++){
-                it[i] = wipe_color;
+              
+              if(second == 1 ){
+                step = (minute / 30) + 1;
+                ESP_LOGD("minute", "Step = %d", step);
+                ESP_LOGD("minute", "Loc  = %d", min_loc);
+                ESP_LOGD("minute", "Min  = %d", minute);
+                if( min_loc < minute){
+                  it[min_loc] = minute_color;
+                  min_loc = min_loc + step;
+                } else {
+                  it[minute] = minute_color;
+                }
+              } else {
+                it[minute] = minute_color;
+                min_loc = 0;
               }
-              wipe += 2;
-            } else {
-              wipe = 0;
+              
+              if(second == 0 ){
+                step = (hour / 30) + 1;
+                ESP_LOGD("hour", "Step = %d", step);
+                ESP_LOGD("hour", "Loc  = %d", hour_loc);
+                ESP_LOGD("hour", "Hour = %d", hour);
+                if( hour_loc < hour){
+                  it[hour_loc] = hour_color;
+                  hour_loc = hour_loc + step;
+                } else {
+                  it[hour] = hour_color;
+                }
+              } else {
+                it[hour] = hour_color;
+                hour_loc = 0;
+              }
+              
+              if(hour == 0 && minute == 0 and second < 2){
+                step = 1;
+                if(noon_wipe < it.size()){
+                  it[noon_wipe] = hour_color;
+                  if(noon_wipe > 0){
+                    it[it.size() - noon_wipe] = minute_color;
+                  }
+                }
+                noon_wipe += step;
+              } else {
+                noon_wipe = 0;
+              }
+              
+              if(hour == minute && second > 1){
+                if(second % 2 == 1){
+                  it[minute] = minute_color;
+                  ESP_LOGD("same", "Hour equal minute");
+                }
+              }
+              
+              if(minute == 59 && second == 59 && wipe < it.size() - 1){
+                
+                it[wipe] = wipe_color;
+                if(wipe > 0){
+                  it[wipe-1] = paun_wipe_color;
+                  if(wipe > 1 ){
+                    it[wipe-2] = half_wipe_color;
+                    if(wipe > 2 ){
+                      it[wipe-3] = quart_wipe_color;
+                      if(wipe > 3){
+                        it[wipe-4] = eighth_wipe_color;
+                      }
+                    }
+                  }
+                }
+                
+                wipe += 2;
+              } else {
+                wipe = 0;
+              }
             }
             
             if(second > 59){
               it.all() = ESPColor::WHITE;
-            }     
+            }
             
       - addressable_rainbow:
           name: "Rainbow Spinner"
           speed: 8
-          width: "${num_leds}"
-      - addressable_rainbow:
-          name: "Rainbow Fader"
-          speed: 3
-          width: "${num_leds}"
-      - random:
-          name: "Random Slow"
-          transition_length: 30s
-          update_interval: 30s
+          width: 60
+      - strobe:
+          name: Color Test
+          colors:
+            - state: True
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 500ms
+            - state: True
+              brightness: 100%
+              red: 0%
+              green: 100%
+              blue: 0%
+              duration: 500ms
+            - state: True
+              brightness: 100%
+              red: 0%
+              green: 0%
+              blue: 100%
+              duration: 500ms
+            - state: True
+              brightness: 100%
+              red: 100%
+              green: 100%
+              blue: 100%
+              duration: 500ms
+              
+
+      
+      - addressable_lambda:
+          name: Candy Cane
+          update_interval: 100ms
+          lambda:
+            static int state = 0;
+            const int width = 15;
+      
+            for (int i = it.size() - 1; i > 0; i--) {
+              it[i] = it[i - 1].get();
+            }
+      
+            if(state < width/2){
+              it[0] = ESPColor(255,0,0);
+            } else {
+              it[0] = ESPColor::WHITE;
+            }
+      
+            state += 1;
+            if (state >= width)
+                state = 0;
+      
+  
+      
+      - addressable_lambda:
+          name: Theater Marquee
+          update_interval: 75ms
+          lambda:
+      
+            static int step = 0;
+            const int width = 4;
+      
+            for (int i = it.size()/2; i >= 0; i--) {
+              if(i % width == step){
+                it[i] = ESPColor::WHITE;
+                it[it.size() - i] = ESPColor::WHITE;
+              } else {
+                it[i] = ESPColor::BLACK;
+                it[it.size() - i] = ESPColor::BLACK;
+              }
+            }
+      
+            step += 1;
+            if (step >= width){
+              step = 0;
+            }
+  
+      
+      - addressable_lambda:
+          name: Police 3
+          update_interval: 20ms
+          lambda:
+            static int color_state;
+            static int color_start;
+            static int first_color;
+            static int cycle;
+      
+            const int width = 10;
+            const int flash_width = 2;
+            const int cycle_limit = 6;
+      
+            int state = 0;
+      
+            if(initial_run){
+              state = 0;
+              color_state = 0;
+              color_start = 0;
+              first_color = 0;
+              cycle = 0;
+            }
+      
+            state = state + color_start;
+            color_state = first_color;
+      
+            for (int i = 0; i < it.size(); i++) {
+              if(color_state == 0){
+                it[i] = ESPColor(255,0,0);
+              } else {
+                it[i] = ESPColor(0,0,255);
+              }
+              if(cycle == 1 && state < flash_width){
+                it[i] = ESPColor::WHITE;
+              }
+      
+              state += 1;
+              if(state >= width){
+                state = 0;
+                color_state += 1;
+                color_state = color_state % 2;
+              }
+            }
+      
+            cycle += 1;
+            if(cycle >= cycle_limit){
+                cycle = 0;
+                color_start += 1;
+                if(color_start >= width){
+                  color_start = 0;
+                  first_color += 1;
+                  first_color = first_color % 2;
+                }
+            }
+      
