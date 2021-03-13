@@ -39,9 +39,11 @@ sensor:
   - platform: sgp30
     eco2:
       name: $upper_device_name eCO2
+      id: eco2
       accuracy_decimals: 1
     tvoc:
       name: $upper_device_name TVOC
+      id: tvoc
       accuracy_decimals: 1
     address: 0x58
     update_interval: 60s
@@ -61,3 +63,70 @@ sensor:
       id: humid
     address: 0x5c
     update_interval: 60s
+    
+  - platform: template
+    id: tempf
+    lambda: |-
+      if (id(temp).state) {
+        return (id(temp).state * 9/5) + 32;
+      } else {
+        return {};
+      }
+    
+font:
+  - file: 'fonts/arial.ttf'
+    id: font1
+    size: 12
+
+  - file: 'fonts/arial.ttf'
+    id: font2
+    size: 24
+
+  - file: 'fonts/arial.ttf'
+    id: font3
+    size: 10
+
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 64x48"
+    reset_pin: D0
+    address: 0x3C
+    id: screen 
+    pages:
+      - id: tvoc_page
+        lambda: |-
+          it.print(0,0, id(font1), TextAlign::TOP_LEFT,  "TVOC:");
+          // Print TVOC value
+          if (id(tvoc).has_state()) {
+            it.printf(32,13, id(font2), TextAlign::TOP_CENTER,  " %.0f", id(tvoc).state);
+            it.print(64,48, id(font3), TextAlign::BOTTOM_RIGHT,  "ppb");
+          }
+      - id: eco2_page
+        lambda: |-
+          it.print(0,0, id(font1), TextAlign::TOP_LEFT,  "eCO2:");
+          // Print eCO2 value
+          if (id(eco2).has_state()) {
+            it.printf(32,13, id(font2), TextAlign::TOP_CENTER,  " %.0f", id(eco2).state);
+            it.print(64,48, id(font3), TextAlign::BOTTOM_RIGHT,  "ppm");
+          }
+      - id: temp_page
+        lambda: |-
+          it.print(0,0, id(font1), TextAlign::TOP_LEFT,  "Temp:");
+          // Print temperature
+          if (id(tempf).has_state()) {
+            it.printf(32,13, id(font2), TextAlign::TOP_CENTER,  " %.0f", id(tempf).state);
+            it.print(64,48, id(font3), TextAlign::BOTTOM_RIGHT,  "°F");
+          }
+      - id: humid_page
+        lambda: |-
+          it.print(0,0, id(font1), TextAlign::TOP_LEFT,  "Humidity:");
+          // Print Humidity
+          if (id(humid).has_state()) {
+            it.printf(32,13, id(font2), TextAlign::TOP_CENTER,  " %.0f", id(humid).state);
+            it.print(64,48, id(font3), TextAlign::BOTTOM_RIGHT,  "%");
+          }
+interval:
+  - interval: 2.5s
+    then:
+      - display.page.show_next: screen
+      - component.update: screen
