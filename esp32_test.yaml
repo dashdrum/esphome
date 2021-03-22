@@ -6,12 +6,9 @@ esphome:
   name: $device_name
   platform: ESP32
   # board: esp32doit-devkit-v1
-  # board: esp32dev
   board: wemos_d1_mini32
 
 wifi: !include include/wifi.yaml
-
-## Note: I had to enable "multicast routing" on my router for mDNS to work for the ESP32S Devkit-v1
 
 captive_portal:
 
@@ -27,33 +24,48 @@ logger:
 
 ota:
 
-mqtt: !include include/mqtt.yaml
+mqtt: 
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  # Needed when using deep sleep mode
+  birth_message:
+    topic: $device_name/birthdisable
+    payload: disable
+  will_message:
+    topic: $device_name/willdisable
+    payload: disable
       
 switch:
   - platform: restart
     name: $upper_device_name Restart
+
+esp32_ble_tracker:
+
+i2c:
     
 sensor:
+
+  - !include include/sht3xd-45.yaml
+  
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
-
-esp32_ble_tracker:
-  # on_ble_advertise:
-  #   then:
-  #     - lambda: |-
-  #         ESP_LOGD("ble_adv", "New BLE device");
-  #         ESP_LOGD("ble_adv", "  address: %s", x.address_str().c_str());
-  #         ESP_LOGD("ble_adv", "  name: %s", x.get_name().c_str());
-  #         ESP_LOGD("ble_adv", "  Advertised service UUIDs:");
-  #         for (auto uuid : x.get_service_uuids()) {
-  #             ESP_LOGD("ble_adv", "    - %s", uuid.to_string().c_str());
-  #         }
-  #         ESP_LOGD("ble_adv", "  Advertised service data:");
-  #         for (auto data : x.get_service_datas()) {
-  #             ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
-  #         }
-  #         ESP_LOGD("ble_adv", "  Advertised manufacturer data:");
-  #         for (auto data : x.get_manufacturer_datas()) {
-  #             ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
-  #         }
+    
+  - platform: ruuvitag
+    mac_address: !secret trailer_fridge_ruuvi_mac
+    temperature:
+      name: $upper_device_name Fridge Temperature
+      expire_after: 60min
+      # on_value:  # Device will stay awake until Ruuvi values are published (or deep sleep timer is reached)
+      #   then:
+      #     - logger.log: "  Fridge Temp Published!!"
+      #     - deep_sleep.enter: deep_sleep_1
+    measurement_sequence_number:
+      name: $upper_device_name Fridge Measurement Sequence Number
+      expire_after: 60min
+      
+deep_sleep: 
+  run_duration: 60s  ## this is a long duration, trying to pickup the Ruuvi BLE beacon
+  sleep_duration: 15min
+  id: deep_sleep_1
