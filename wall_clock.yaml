@@ -1,6 +1,6 @@
 substitutions:
-  device_name: clock_circle
-  upper_device_name: Clock Circle
+  device_name: wall_clock
+  upper_device_name: Wall Clock
 
 esphome:
   name: $device_name
