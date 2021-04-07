@@ -16,7 +16,7 @@ web_server:
 
 # Enable logging
 logger:
-  level: DEBUG
+  level: WARN
 
 # Enable Home Assistant API
 # api:
@@ -30,8 +30,21 @@ switch:
     name: $upper_device_name Restart
     
 i2c:
+
+# uart:
+#   rx_pin: GPIO23
+#   baud_rate: 9600
     
 sensor:
+  # - platform: pmsx003
+  #   type: PMSX003
+  #   pm_1_0:
+  #     name: "Particulate Matter <1.0µm Concentration"
+  #   pm_2_5:
+  #     name: "Particulate Matter <2.5µm Concentration"
+  #   pm_10_0:
+  #     name: "Particulate Matter <10.0µm Concentration"
+    
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
@@ -40,11 +53,11 @@ sensor:
     eco2:
       name: $upper_device_name eCO2
       id: eco2
-      accuracy_decimals: 1
+      accuracy_decimals: 0
     tvoc:
       name: $upper_device_name TVOC
       id: tvoc
-      accuracy_decimals: 1
+      accuracy_decimals: 0
     address: 0x58
     update_interval: 60s
     compensation:
@@ -58,11 +71,60 @@ sensor:
     temperature:
       name: $upper_device_name Temperature
       id: temp
+      accuracy_decimals: 2
     humidity:
       name: $upper_device_name Humidity
       id: humid
     address: 0x5c
     update_interval: 60s
+    
+  # - platform: template
+  #   name: $upper_device_name Temp Linear Correction
+  #   id: temp_linear
+  #   accuracy_decimals: 2
+  #   icon: mdi:thermometer
+  #   unit_of_measurement: "°F"
+  #   lambda: |-
+  #     if (id(temp).state) {
+  #       return (id(temp).state * 9/5) + 32;
+  #     } else {
+  #       return {};
+  #     }
+  #   filters:
+  #     - calibrate_linear:   # in Fahrenheit
+  #       - 36.14 -> 32.67
+  #       - 66.56 -> 63.79
+  #       - 69.44 -> 64.92
+  #       - 75.74 -> 70.52
+  #       - 76.64 -> 72.41
+  #       - 78.44 -> 74.76
+  #       - 79.16 -> 75.81
+  #   update_interval: 60s
+    
+  # - platform: template
+  #   name: $upper_device_name Temp Polynomial Correction
+  #   id: temp_poly
+  #   accuracy_decimals: 2
+  #   icon: mdi:thermometer
+  #   unit_of_measurement: "°F"
+  #   lambda: |-
+  #     if (id(temp).state) {
+  #       return (id(temp).state * 9/5) + 32;
+  #     } else {
+  #       return {};
+  #     }
+  #   filters:
+  #       - calibrate_polynomial:
+  #           degree: 4
+  #           datapoints:   # in Fahrenheit
+  #             - 36.14 -> 32.67
+  #             - 66.56 -> 63.79
+  #             - 69.44 -> 64.92
+  #             - 75.74 -> 70.52
+  #             - 76.64 -> 72.41
+  #             - 78.44 -> 74.76
+  #             - 79.16 -> 75.81
+  #   update_interval: 60s
     
   - platform: template
     id: tempf
@@ -116,6 +178,14 @@ display:
           if (id(tempf).has_state()) {
             it.printf(32,13, id(font2), TextAlign::TOP_CENTER,  " %.0f", id(tempf).state);
             it.print(64,48, id(font3), TextAlign::BOTTOM_RIGHT,  "°F");
+          }
+      - id: tempc_page
+        lambda: |-
+          it.print(0,0, id(font1), TextAlign::TOP_LEFT,  "Temp:");
+          // Print temperature
+          if (id(temp).has_state()) {
+            it.printf(32,13, id(font2), TextAlign::TOP_CENTER,  " %.0f", id(temp).state);
+            it.print(64,48, id(font3), TextAlign::BOTTOM_RIGHT,  "°C");
           }
       - id: humid_page
         lambda: |-
