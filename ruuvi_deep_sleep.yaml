@@ -1,0 +1,102 @@
+substitutions:
+  device_name: ruuvi_deep_sleep
+  upper_device_name: Ruuvi Deep Sleep
+
+esphome:
+  name: $device_name
+  platform: ESP32
+  board: wemos_d1_mini32
+
+wifi: 
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: $upper_device_name
+    password: !secret hotspot_password
+  
+captive_portal:
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# I'm not using the ESPHome API, but you certainly can
+# api:
+
+ota:
+
+mqtt: 
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  # Needed when using deep sleep mode
+  birth_message:
+    topic: " "
+    payload: disabled
+  will_message:
+    topic: " "
+    payload: disabled
+
+globals:
+  - id: ruuvi_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+    
+esp32_ble_tracker:
+
+sensor:
+    
+  - platform: ruuvitag
+     # MAC Address of Ruuvi Tag should include colon separators
+    mac_address: !secret trailer_fridge_ruuvi_mac
+    temperature:
+      name: $upper_device_name Temperature
+      expire_after: 60min
+      # Device will stay awake until Ruuvi values are received the 2nd time (or deep sleep timer is reached)
+      # Why the 2nd time? The on_value event triggers BEFORE the values are published in MQTT
+      on_value:  
+        then:
+          - lambda: |-
+              ESP_LOGD("sleepy", "  Temp Published!:");
+              id(ruuvi_count) += 1;
+              if(id(ruuvi_count) > 1 ){
+                id(deep_sleep_1).begin_sleep();
+              }
+    humidity:
+      name: $upper_device_name Humidity
+      expire_after: 60min
+    pressure:
+      name: $upper_device_name Pressure
+      expire_after: 60min
+    acceleration:
+      name: $upper_device_name Acceleration
+      expire_after: 60min
+    acceleration_x:
+      name: $upper_device_name Acceleration X
+      expire_after: 60min
+    acceleration_y:
+      name: $upper_device_name Acceleration Y
+      expire_after: 60min
+    acceleration_z:
+      name: $upper_device_name Acceleration Z
+      expire_after: 60min
+    battery_voltage:
+      name: $upper_device_name Battery Voltage
+      expire_after: 60min
+    tx_power:
+      name: $upper_device_name TX Power
+      expire_after: 60min
+    movement_counter:
+      name: $upper_device_name Movement Counter
+      expire_after: 60min
+    measurement_sequence_number:
+      name: $upper_device_name Measurement Sequence Number
+      expire_after: 60min
+    
+deep_sleep: 
+  run_duration: 120s  ## this is a long duration, trying to pickup the Ruuvi BLE beacon
+  sleep_duration: 15min
+  id: deep_sleep_1
