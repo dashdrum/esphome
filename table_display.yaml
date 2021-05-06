@@ -29,6 +29,10 @@ time:
   - platform: sntp
     id: esptime
     timezone: America/Detroit
+    servers:
+      - 192.168.254.118
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
       
 switch:
   - platform: restart
