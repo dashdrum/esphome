@@ -207,12 +207,12 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor::BLACK;
+            it.all() = ESPColor(0,0,0);
             
             if(first_wipe){
               if(wipe < it.size() - 1){
                 for(int i = 0;i < wipe + 1;i++){
-                  it[i] = ESPColor::BLACK;
+                  it[i] = ESPColor(0,0,0);
                   if(id(marker_setting) > 1){
                     if(i % (it.size() / 12) == 0){
                       it[i] = minor_indicator_color;
@@ -318,7 +318,7 @@ light:
               if(hour == second || minute == second ){
                 ESP_LOGD("same", "Second hides behind hour or minute");
                 if(blink == 0){
-                  it[second] = ESPColor::WHITE;
+                  it[second] = ESPColor(255,255,255);
                   blink += 1;
                 } else {
                   blink += 1;
@@ -349,7 +349,7 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor::WHITE;
+              it.all() = ESPColor(255,255,255);
             }
 
             
@@ -377,7 +377,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor::BLACK;
+            it.all() = ESPColor(0,0,0);
 
             if(second < 60){
               it[second] = second_color;
@@ -430,7 +430,7 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor::WHITE;
+              it.all() = ESPColor(255,255,255);
             }
             
       - addressable_lambda:
@@ -458,7 +458,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor::BLACK;
+            it.all() = ESPColor(0,0,0);
             
             if(second < 60){
               it[second] = second_color;
@@ -474,7 +474,7 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor::WHITE;
+              it.all() = ESPColor(255,255,255);
             }
             
       - addressable_lambda:
@@ -510,7 +510,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor::BLACK;
+            it.all() = ESPColor(0,0,0);
 
             for(int i = 0;i < 60; i++){
               int d = (i + cane_pos) % 60;
@@ -551,7 +551,7 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor::WHITE;
+              it.all() = ESPColor(255,255,255);
             }
 
             
@@ -581,7 +581,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor::BLACK;
+            it.all() = ESPColor(0,0,0);
             
             for(int i = 0; i < it.size();i++){
               if(id(marker_setting) > 1){
@@ -654,7 +654,7 @@ light:
             }
                           
             if(second > 59){
-              it.all() = ESPColor::WHITE;
+              it.all() = ESPColor(255,255,255);
             }
             
       - addressable_lambda:
@@ -684,7 +684,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor::BLACK;
+            it.all() = ESPColor(0,0,0);
             
             for(int i = 0; i < it.size();i++){
               if(id(marker_setting) > 1){
@@ -722,16 +722,16 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor::WHITE;
+              it.all() = ESPColor(255,255,255);
             }
             
       - addressable_lambda:
           name: Clock Inverse
           update_interval: 100ms
           lambda:
-            const ESPColor hour_color = ESPColor::BLACK;
-            const ESPColor minute_color = ESPColor::BLACK;
-            const ESPColor second_color = ESPColor::BLACK;
+            const ESPColor hour_color = ESPColor(0,0,0);
+            const ESPColor minute_color = ESPColor(0,0,0);
+            const ESPColor second_color = ESPColor(0,0,0);
             int hour;
             int hour_adj;
             int minute;
@@ -758,7 +758,7 @@ light:
             it[hour] = hour_color;
             
             if(second > 59){
-              it.all() = ESPColor::WHITE;
+              it.all() = ESPColor(255,255,255);
             }
 
             
@@ -790,7 +790,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor::BLACK;
+            it.all() = ESPColor(0,0,0);
             
             for(int i = 0; i < it.size();i++){
               if(id(marker_setting) > 1){
@@ -831,7 +831,7 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor::WHITE;
+              it.all() = ESPColor(255,255,255);
             }
 
             
@@ -863,7 +863,7 @@ light:
             minute = 30 - (time.minute / 2);
             second = time.second;
             
-            it.all() = ESPColor::BLACK;
+            it.all() = ESPColor(0,0,0);
             
             for(int i = 0; i < it.size();i++){
               if(id(marker_setting) > 1){
@@ -927,11 +927,11 @@ light:
             if(second % 2 == 1){
               it[0] = second_color;
             } else {
-              it[0] = ESPColor::BLACK;
+              it[0] = ESPColor(0,0,0);
             }
             
             if(second > 59){
-              it.all() = ESPColor::WHITE;
+              it.all() = ESPColor(255,255,255);
             }
           
       - strobe:
@@ -973,7 +973,7 @@ light:
             if(step == 0) wipe_color = ESPColor(255,0,0);
             if(step == 1) wipe_color = ESPColor(0,255,0);
             if(step == 2) wipe_color = ESPColor(0,0,255);
-            if(step == 3) wipe_color = ESPColor(255,255,255);
+            if(step == 3) wipe_color = ESPColor(255,255,255);;
 
             for(int i = 0; i <= wipe; i++){
               it[i] = wipe_color;
@@ -1020,7 +1020,7 @@ light:
                 it[i] = ESPColor(0,0,255);
               }
               if(cycle == 1 && state < flash_width){
-                it[i] = ESPColor::WHITE;
+                it[i] = ESPColor(255,255,255);
               }
       
               state += 1;

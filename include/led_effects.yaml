@@ -128,7 +128,7 @@
       if(state < width/2){
         it[0] = ESPColor(255,0,0);
       } else {
-        it[0] = ESPColor::WHITE;
+        it[0] = ESPColor(255,255,255);
       }
 
       state += 1;
@@ -217,7 +217,7 @@
 
         if(state==0){
           int i = rand() % it.size();
-          it[i] = ESPColor::WHITE;
+          it[i] = ESPColor(255,255,255);
           state += 1;
         } else {
           state += 1;
@@ -243,7 +243,7 @@
 
         if(state==0){
           int i = rand() % it.size();
-          it[i] = ESPColor::WHITE;
+          it[i] = ESPColor(255,255,255);
           state += 1;
         } else {
           state += 1;
@@ -263,7 +263,7 @@
           if(rand() % light_odds == 0){
             it[i] = ESPColor::random_color();
           } else {
-            it[i] = ESPColor::BLACK;
+            it[i] = ESPColor(0,0,0);
           }
         }
         ESP_LOGD("custom", "Twinkle");
@@ -274,7 +274,7 @@
         if(rand() % light_odds == 0){
           it[i] = ESPColor::random_color();
         } else {
-          it[i] = ESPColor::BLACK;
+          it[i] = ESPColor(0,0,0);
         }
       }
 
@@ -310,7 +310,7 @@
 
         for(int i=0;i<it.size();i++){
           if(rand() % light_odds == 0){
-            it[i] = ESPColor::BLACK;
+            it[i] = ESPColor(0,0,0);
           } else {
             int color_index = rand() % color_count;
             it[i] = colors[color_index];
@@ -320,7 +320,7 @@
 
       int led_index = rand() % it.size();
       if(rand() % light_odds == 0){
-        it[led_index] = ESPColor::BLACK;
+        it[led_index] = ESPColor(0,0,0);
       } else {
         int color_index = rand() % color_count;
         it[led_index] = colors[color_index];
@@ -336,9 +336,9 @@
 
         for(int i=0;i<it.size();i++){
           if(rand() % light_odds == 0){
-            it[i] = ESPColor::WHITE;
+            it[i] = ESPColor(255,255,255);
           } else {
-            it[i] = ESPColor::BLACK;
+            it[i] = ESPColor(0,0,0);
           }
         }
         ESP_LOGD("custom", "White Twinkle");
@@ -347,9 +347,9 @@
         int i = rand() % it.size();
 
         if(rand() % light_odds == 0){
-          it[i] = ESPColor::WHITE;
+          it[i] = ESPColor(255,255,255);
         } else {
-          it[i] = ESPColor::BLACK;
+          it[i] = ESPColor(0,0,0);
         }
       }
 
@@ -365,7 +365,7 @@
           if(rand() % light_odds == 0){
             it[i] = current_color;
           } else {
-            it[i] = ESPColor::BLACK;
+            it[i] = ESPColor(0,0,0);
           }
         }
         ESP_LOGD("custom", "Current Twinkle");
@@ -376,7 +376,7 @@
         if(rand() % light_odds == 0){
           it[i] = current_color;
         } else {
-          it[i] = ESPColor::BLACK;
+          it[i] = ESPColor(0,0,0);
         }
       }
 
@@ -453,11 +453,11 @@
 
       for (int i = it.size()/2; i >= 0; i--) {
         if(i % width == step){
-          it[i] = ESPColor::WHITE;
-          it[it.size() - i] = ESPColor::WHITE;
+          it[i] = ESPColor(255,255,255);
+          it[it.size() - i] = ESPColor(255,255,255);
         } else {
-          it[i] = ESPColor::BLACK;
-          it[it.size() - i] = ESPColor::BLACK;
+          it[i] = ESPColor(0,0,0);
+          it[it.size() - i] = ESPColor(0,0,0);
         }
       }
 
@@ -475,9 +475,9 @@
 
       for (int i = it.size(); i >= 0; i--) {
         if(i % width == step){
-          it[i] = ESPColor::WHITE;
+          it[i] = ESPColor(255,255,255);
         } else {
-          it[i] = ESPColor::BLACK;
+          it[i] = ESPColor(0,0,0);
         }
       }
 
@@ -557,7 +557,7 @@
 
       it[step] = current_color;
       if(step >0 && step < it.size()){
-        it[step + (direction * -1)] = ESPColor::BLACK;
+        it[step + (direction * -1)] = ESPColor(0,0,0);
       }
 
       step = step + direction;
@@ -586,7 +586,7 @@
 
       if(state == 0){
 
-        it.all() = ESPColor::BLACK;
+        it.all() = ESPColor(0,0,0);
 
         while(i < it.size()){
 
@@ -620,7 +620,7 @@
 
       } else if(state == 1){
 
-        it.all() = ESPColor::BLACK;
+        it.all() = ESPColor(0,0,0);
 
         while(i < it.size()){
 
@@ -637,7 +637,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor::WHITE;
+              it[i + j] = ESPColor(255,255,255);
             }
           }
           i += width;
@@ -659,7 +659,7 @@
 
       } else if(state == 2){
 
-        it.all() = ESPColor::BLACK;
+        it.all() = ESPColor(0,0,0);
 
         while(i < it.size()){
 
@@ -693,7 +693,7 @@
 
       } else if(state == 3){
 
-        it.all() = ESPColor::BLACK;
+        it.all() = ESPColor(0,0,0);
 
         while(i < it.size()){
 
@@ -710,7 +710,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor::WHITE;
+              it[i + j] = ESPColor(255,255,255);
             }
           }
           i += width;
@@ -748,9 +748,9 @@
       const int repeat_limit = 4;
 
       const ESPColor s01_fill = ESPColor(255,0,0);
-      const ESPColor s02_fill = ESPColor::WHITE;
+      const ESPColor s02_fill = ESPColor(255,255,255);
       const ESPColor s03_fill = ESPColor(0,0,255);
-      const ESPColor background_fill = ESPColor::BLACK;
+      const ESPColor background_fill = ESPColor(0,0,0);
       const int s0_flash_limit = 3;
       const int chase_limit = 2;
 
@@ -914,7 +914,7 @@
       int width = it.size() / leg_count;
       int start;
 
-      it.all() = ESPColor::BLACK;
+      it.all() = ESPColor(0,0,0);
 
       start = state * width;
 
@@ -940,7 +940,7 @@
         state = 0;
       }
 
-      it.all() = ESPColor::BLACK;
+      it.all() = ESPColor(0,0,0);
 
       start = state * width;
 
@@ -970,7 +970,7 @@
 
       color = ESPColor::random_color();
 
-      it.all() = ESPColor::BLACK;
+      it.all() = ESPColor(0,0,0);
 
       start = state * width;
 
@@ -1014,7 +1014,7 @@
           it[i] = ESPColor(0,0,255);
         }
         if(cycle == 1 && state < flash_width){
-          it[i] = ESPColor::WHITE;
+          it[i] = ESPColor(255,255,255);
         }
 
         state += 1;
