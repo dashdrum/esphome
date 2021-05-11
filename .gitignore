@@ -11,3 +11,4 @@
 .DS_Store
 esphome_backup.sh
 deploy_include.sh
+*.pyc
