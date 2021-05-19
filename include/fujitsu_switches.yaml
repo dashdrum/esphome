@@ -29,6 +29,19 @@
     - output.turn_off: onboard_led
 
 - platform: template
+  name: $switch_prefix 64
+  turn_on_action:
+    - climate.control:
+        id: $climate_id
+        mode: COOL
+        target_temperature: 64°F
+        fan_mode: AUTO
+        swing_mode: VERTICAL
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+- platform: template
   name: $switch_prefix Off
   turn_on_action:
     - climate.control:
