@@ -1,0 +1,41 @@
+substitutions:
+  device_name: ir_receiver
+  upper_device_name: IR Receiver
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+    
+output: !include include/onboard_led.yaml
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+      
+remote_receiver:
+  pin: 
+    number: GPIO2
+    inverted: True
+  dump: all
+  id: recvr1
+  
