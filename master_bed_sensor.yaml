@@ -34,6 +34,7 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 600s
+    icon: mdi:wifi
 
   - platform: adc
     id: left_fsr

@@ -59,6 +59,7 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
+    icon: mdi:wifi
     
   - platform: mpu6050
     address: 0x68

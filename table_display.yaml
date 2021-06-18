@@ -55,6 +55,7 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
+    icon: mdi:wifi
     
 font:
   - file: 'fonts/arial.ttf'

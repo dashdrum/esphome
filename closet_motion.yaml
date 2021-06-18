@@ -35,6 +35,8 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
+    expire_after: 60min
+    icon: mdi:wifi
   
 switch:
   - platform: restart
