@@ -48,6 +48,8 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
+    expire_after: 60min
+    icon: mdi:wifi
 
   - platform: sgp30
     eco2:
@@ -72,9 +74,12 @@ sensor:
       name: $upper_device_name Temperature
       id: temp
       accuracy_decimals: 2
+      expire_after: 60min
     humidity:
       name: $upper_device_name Humidity
       id: humid
+      icon: mdi:water-percent
+      expire_after: 60min
     address: 0x5c
     update_interval: 60s
     
