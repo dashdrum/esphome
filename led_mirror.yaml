@@ -6,6 +6,11 @@ esphome:
   name: $device_name
   platform: ESP8266
   board: d1_mini
+  on_boot:
+    then:
+      - light.turn_on:
+          id: $device_name
+          effect: "Random"
 
 wifi:
   ssid: !secret wifi_ssid
@@ -74,55 +79,55 @@ light:
             call.perform();
       - strobe:
       - flicker:
-      - lambda:
-          name: Breathing Red
-          update_interval: 50ms
-          lambda: |-
-            static int step = 0;
-            const int step_limit = 80;
-            float brightness;
+      # - lambda:
+      #     name: Breathing Red
+      #     update_interval: 50ms
+      #     lambda: |-
+      #       static int step = 0;
+      #       const int step_limit = 80;
+      #       float brightness;
         
-            auto call = id(led_mirror).turn_on();
-            call.set_rgb(1,0,0);
+      #       auto call = id(led_mirror).turn_on();
+      #       call.set_rgb(1,0,0);
       
-            brightness = (float)step / ((float)step_limit / 2.0f);
+      #       brightness = (float)step / ((float)step_limit / 2.0f);
       
-            if(brightness > 1.0f){
-            	brightness = 1.0f - (brightness - 1.0f );
-            }
+      #       if(brightness > 1.0f){
+      #       	brightness = 1.0f - (brightness - 1.0f );
+      #       }
       
-            call.set_brightness(brightness);
-            call.set_white(0.0);
-            call.set_transition_length(0);
-            call.perform();
+      #       call.set_brightness(brightness);
+      #       call.set_white(0.0);
+      #       call.set_transition_length(0);
+      #       call.perform();
             
-            step = ++step % step_limit;
+      #       step = ++step % step_limit;
 
-      - lambda:
-          name: Presets
-          update_interval: 100ms
-          lambda: |-
-              auto call = id(led_mirror).turn_on();
-              const float presets[9][4] = {
-                // {red, green, blue, white}
-                {1.0, 1.0, 1.0, 1.0},      // Super white
-                {0.2,1.0,0.6, 0.0},           //  medium green
-                {1.0,0.2,0.6, 0.0},           //  pink
-                {0.2,0.6,1.0, 0.0},           //  medium blue
-                {1.0,0.6,0.2, 0.0},           //  orange
-                {0.6,0.2,1.0, 0.0},           //  purple
-                {1.0,1.0,0.4, 0.0},          //  goldenrod
-                {1.0, 0.2, 0, 0.02},       // nightlight
-                {0.1, 0.1, 0.1, 0.1}                //  almost off
-              };
-              call.set_transition_length(0);
-              if(id(g_preset_color) == 0){
-                call.set_brightness(1.0);
-              } else {
-              call.set_brightness(0.5);
-              }
-              call.set_rgbw(presets[id(g_preset_color)][0], presets[id(g_preset_color)][1], presets[id(g_preset_color)][2], presets[id(g_preset_color)][3]);
-              call.perform();
+      # - lambda:
+      #     name: Presets
+      #     update_interval: 100ms
+      #     lambda: |-
+      #         auto call = id(led_mirror).turn_on();
+      #         const float presets[9][4] = {
+      #           // {red, green, blue, white}
+      #           {1.0, 1.0, 1.0, 1.0},      // Super white
+      #           {0.2,1.0,0.6, 0.0},           //  medium green
+      #           {1.0,0.2,0.6, 0.0},           //  pink
+      #           {0.2,0.6,1.0, 0.0},           //  medium blue
+      #           {1.0,0.6,0.2, 0.0},           //  orange
+      #           {0.6,0.2,1.0, 0.0},           //  purple
+      #           {1.0,1.0,0.4, 0.0},          //  goldenrod
+      #           {1.0, 0.2, 0, 0.02},       // nightlight
+      #           {0.1, 0.1, 0.1, 0.1}                //  almost off
+      #         };
+      #         call.set_transition_length(0);
+      #         if(id(g_preset_color) == 0){
+      #           call.set_brightness(1.0);
+      #         } else {
+      #         call.set_brightness(0.5);
+      #         }
+      #         call.set_rgbw(presets[id(g_preset_color)][0], presets[id(g_preset_color)][1], presets[id(g_preset_color)][2], presets[id(g_preset_color)][3]);
+      #         call.perform();
 output:
   - platform: esp8266_pwm
     id: output_component_red
@@ -178,6 +183,7 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s 
+    icon: mdi:wifi
   
 switch:
   - platform: restart
