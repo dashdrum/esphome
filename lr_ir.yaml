@@ -1,6 +1,7 @@
 substitutions:
-  device_name: ir_receiver
-  upper_device_name: IR Receiver
+  device_name: lr_ir
+  upper_device_name: Living Room IR
+  switch_prefix: IR
 
 esphome:
   name: $device_name
@@ -32,23 +33,12 @@ sensor:
     name: $upper_device_name WiFi Signal
     update_interval: 60s
     icon: mdi:wifi
+    
+remote_transmitter:
+  pin: GPIO12  # D6
+  carrier_duty_percent: 50%
+  id: $device_name
       
-remote_receiver:
-  pin: 
-    number: GPIO2
-    inverted: True
-  dump: all
-  id: recvr1
-  
-# binary_sensor:
-  # - platform: remote_receiver
-  #   receiver_id: recvr1
-  #   name: "Office AC Power Button"
-  #   nec:
-  #     address: 0x80FF
-  #     command: 0x48B7
-     
-  
 switch:
-  - platform: restart
-    name: $upper_device_name Restart 
+- platform: restart
+  name: $upper_device_name Restart
