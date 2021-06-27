@@ -1,0 +1,145 @@
+substitutions:
+  device_name: of_ac
+  upper_device_name: Office AC
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+    
+output: !include include/onboard_led.yaml
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+    icon: mdi:wifi
+      
+remote_transmitter:
+  pin: GPIO04
+  carrier_duty_percent: 50%
+  id: remote_1
+
+# Individual switches
+switch:
+  - platform: template
+    name: Office AC Power
+    id: power
+    turn_on_action:
+      - remote_transmitter.transmit_nec:
+          address: 0x80ff
+          command: 0x48b7
+      - output.turn_on: onboard_led
+      - delay: 250ms
+      - output.turn_off: onboard_led
+      
+  - platform: template
+    name: Office AC Mode
+    id: mode
+    turn_on_action:
+      - output.turn_on: onboard_led
+      - remote_transmitter.transmit_nec:
+          address: 0x80ff
+          command: 0x40BF
+      - delay: 250ms
+      - output.turn_off: onboard_led
+      
+  - platform: template
+    name: Office AC Minus
+    id: minus
+    turn_on_action:
+      - output.turn_on: onboard_led
+      - remote_transmitter.transmit_nec:
+          address: 0x80ff
+          command: 0xc837
+      - delay: 250ms
+      - output.turn_off: onboard_led
+      
+  - platform: template
+    name: Office AC Plus
+    id: plus
+    turn_on_action:
+      - output.turn_on: onboard_led
+      - remote_transmitter.transmit_nec:
+          address: 0x80ff
+          command: 0x58a7
+      - delay: 250ms
+      - output.turn_off: onboard_led
+      
+  - platform: template
+    name: Office AC Timer
+    id: timer
+    turn_on_action:
+      - output.turn_on: onboard_led
+      - remote_transmitter.transmit_nec:
+          address: 0x80ff
+          command: 0xd827
+      - delay: 250ms
+      - output.turn_off: onboard_led
+      
+  - platform: template
+    name: Office AC Fan
+    id: fan
+    turn_on_action:
+      - output.turn_on: onboard_led
+      - remote_transmitter.transmit_nec:
+          address: 0x80ff
+          command: 0x708f
+      - delay: 250ms
+      - output.turn_off: onboard_led
+      
+  - platform: template
+    name: Office AC Eco
+    id: eco
+    turn_on_action:
+      - output.turn_on: onboard_led
+      - remote_transmitter.transmit_nec:
+          address: 0x80ff
+          command: 0xf00f
+      - delay: 250ms
+      - output.turn_off: onboard_led
+      
+  - platform: template
+    name: Office AC Display
+    id: display
+    turn_on_action:
+      - output.turn_on: onboard_led
+      - remote_transmitter.transmit_nec:
+          address: 0x80ff
+          command: 0x6699
+      - delay: 250ms
+      - output.turn_off: onboard_led
+      
+  - platform: template
+    name: Office AC Sleep
+    id: sleepy
+    turn_on_action:
+      - output.turn_on: onboard_led
+      - remote_transmitter.transmit_nec:
+          address: 0x80ff
+          command: 0x50af
+      - delay: 250ms
+      - output.turn_off: onboard_led
+      
+  - platform: restart
+    name: $upper_device_name Restart
+      
+      

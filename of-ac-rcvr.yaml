@@ -1,0 +1,95 @@
+substitutions:
+  upper_device_name: Office AC Receiver
+  device_name: of_ac_rcvr 
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: esp01_1m
+
+# Enable logging
+logger:
+  level: INFO
+
+ota:
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+mqtt: !include include/mqtt.yaml
+    
+remote_receiver:
+  pin: 
+    number: GPIO2
+    inverted: True
+  dump: all
+  id: recvr1
+  
+binary_sensor:
+  - platform: remote_receiver
+    receiver_id: recvr1
+    name: "Office AC Power Button"
+    nec:
+      address: 0x80FF
+      command: 0x48B7
+      
+  - platform: remote_receiver
+    receiver_id: recvr1
+    name: "Office AC Temp Plus"
+    nec:
+      address: 0x80FF
+      command: 0x58A7
+      
+  - platform: remote_receiver
+    receiver_id: recvr1
+    name: "Office AC Temp Minus"
+    nec:
+      address: 0x80FF
+      command: 0xC837
+      
+  - platform: remote_receiver
+    receiver_id: recvr1
+    name: "Office AC Eco"
+    nec:
+      address: 0x80FF
+      command: 0xF00F
+      
+  - platform: remote_receiver
+    receiver_id: recvr1
+    name: "Office AC Display"
+    nec:
+      address: 0x80FF
+      command: 0x6699
+      
+  - platform: remote_receiver
+    receiver_id: recvr1
+    name: "Office AC Fan"
+    nec:
+      address: 0x80FF
+      command: 0x708F
+      
+  - platform: remote_receiver
+    receiver_id: recvr1
+    name: "Office AC Mode"
+    nec:
+      address: 0x80FF
+      command: 0x40BF
+      
+  - platform: remote_receiver
+    receiver_id: recvr1
+    name: "Office AC Timer"
+    nec:
+      address: 0x80FF
+      command: 0xD827
+      
+  - platform: remote_receiver
+    receiver_id: recvr1
+    name: "Office AC Sleep"
+    nec:
+      address: 0x80FF
+      command: 0x50AF
+
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
