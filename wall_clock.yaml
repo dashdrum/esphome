@@ -11,7 +11,7 @@ esphome:
     then:
       - light.turn_on:
           id: $device_name
-          effect: "Clock"
+          effect: "Clock Backfill"
 
 wifi: !include include/wifi.yaml
 
@@ -22,7 +22,7 @@ web_server:
 
 # Enable logging
 logger:
-  level: INFO
+  level: DEBUG
 
 # Enable Home Assistant API
 # api:
@@ -356,78 +356,161 @@ light:
             
       - addressable_lambda:
           name: Clock Backfill
-          update_interval: 500ms
+          update_interval: 33ms
           lambda:
             const ESPColor hour_color = ESPColor(255,0,0);
             const ESPColor minute_color = ESPColor(0,200,0);
             const ESPColor second_color = ESPColor(0,200,200);
-            int hour;
-            int hour_adj;
-            int minute;
-            int second;
-            
+
+            ESPColor colors[3];
+            int points[3] = {0,0,0};
+
+            static int hour_wipe = 0;
+            static int minute_wipe = 0;
+            int state = 0;
+            int step = 0;
+
             auto time = id(esptime).now();
             if (!time.is_valid()) {
               return;
             }
-            
-            hour = (time.hour % 12) * 5;
-            minute = time.minute;
-            second = time.second;
-            
-            hour_adj = 5 * minute / 60;
+
+            int hour = (time.hour % 12) * 5;
+            int minute = time.minute;
+            int second = time.second;
+
+            int hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
+
+            if(hour <= minute && second >= minute){
+                points[0] = hour;
+                colors[0] = hour_color;
+                points[1] = minute;
+                colors[1] = minute_color;
+                points[2] = second;
+                colors[2] = second_color;
+                if(second == hour || second == minute ) ESP_LOGD("Backfill","First!");
+            } else if(hour <= second && minute >= second){
+                points[0] = hour;
+                colors[0] = hour_color;
+                points[1] = second;
+                colors[1] = second_color;
+                points[2] = minute;
+                colors[2] = minute_color;
+                if(second == hour || second == minute  ) ESP_LOGD("Backfill","Second");
+            } else if(minute < hour && second >= hour ){
+                points[0] = minute;
+                colors[0] = minute_color;
+                points[1] = hour;
+                colors[1] = hour_color;
+                points[2] = second;
+                colors[2] = second_color;
+                if(second == hour || second == minute  ) ESP_LOGD("Backfill","Third");
+            } else if(minute <= second && hour >= second ){
+                points[0] = minute;
+                colors[0] = minute_color;
+                points[1] = second;
+                colors[1] = second_color;
+                points[2] = hour;
+                colors[2] = hour_color;
+                if(second == hour || second == minute  ) ESP_LOGD("Backfill","Fourth");
+            } else if(second <= hour && minute >= hour ){
+                points[0] = second;
+                colors[0] = second_color;
+                points[1] = hour;
+                colors[1] = hour_color;
+                points[2] = minute;
+                colors[2] = minute_color;
+                if(second == hour || second == minute  ) ESP_LOGD("Backfill","Fif");
+            } else if(second <= minute && hour >= minute ){
+                points[0] = second;
+                colors[0] = second_color;
+                points[1] = minute;
+                colors[1] = minute_color;
+                points[2] = hour;
+                colors[2] = hour_color;
+                if(second == hour || second == minute  ) ESP_LOGD("Backfill","Sixth");
+            } else {
+              ESP_LOGD("Backfill","Fallthru!!!! - Hour %d, Minute %d, Second %d", hour, minute, second);
+            }
             
             it.all() = ESPColor(0,0,0);
 
-            if(second < 60){
-              it[second] = second_color;
-            }
-            it[minute] = minute_color;
-            it[hour] = hour_color;
+            state = 0;
 
-            if( hour == minute && hour == second){
-              for(int i = 0; i < 60; i++){
-                it[i] = hour_color;
-                if(i % 2 == 1){
+            for(int i = 0; i< 60; i++){
+
+              if(hour == minute && points[state] == hour ){
+                if (hour % 2 == i % 2){
+                  it[i] = hour_color;
+                } else {
                   it[i] = minute_color;
                 }
+              } else {
+                it[i] = colors[state];
               }
-              it[hour] = hour_color;
-            }
+              
+              if(second == hour){
+                if( points[state] == hour ){
+                  int range = hour - minute;
+                  if(range < 0) range = range + 60;
+                  if(range > 23 || range == 0){
+                    step = 2;
+                  } else {
+                    step = 1;
+                  }
+                  if( 
+                      ( minute >= hour && i < hour_wipe && hour_wipe <= hour )
+                   || ( minute >= hour && i > hour_wipe && hour_wipe <= hour && i > points[2] )
+                   || ( minute >= hour && i < hour_wipe && hour_wipe > hour && i > points[2]  )  
+                   || ( minute < hour && i < hour_wipe && i > minute && hour_wipe < hour ) 
+                   || ( minute < hour && i > hour_wipe && i > hour && hour_wipe > hour )
+                    ) {
+                    it[i] = second_color;
+                  }
+                }
+              } else {
+                hour_wipe = hour;
+              }
+              
+              if(second == minute && second != hour){
+                if( points[state] == minute ){
+                  int range = minute - hour;
+                  if(range < 0) range = range + 60;
+                  if(range > 23){
+                    step = 2;
+                  } else {
+                    step = 1;
+                  }
+                  if(
+                      ( hour >= minute &&  i < minute_wipe && minute_wipe <= minute )
+                   || ( hour >= minute && i > minute_wipe && minute_wipe <= minute && i > points[2] )
+                   || ( hour >= minute && i < minute_wipe && minute_wipe > minute && i > points[2]  )  
+                   || ( hour < minute && i < minute_wipe && i > hour && minute_wipe < minute  )
+                   || ( hour < minute && i > minute_wipe && i > minute && minute_wipe > minute )
+                    ) {
+                    it[i] = second_color;
+                  }
+                }
+              } else {
+                minute_wipe = minute;
+              }
 
-            for(int i = hour;(i != second && i != minute) || (hour == minute && i != second) || (hour == second && i != minute);){
-              if( i < 0 || i > 59) ESP_LOGD("backfill","Hour - i = %d", i);
-              it[i] = hour_color;
-              if(hour == minute){
-                if(i % 2 == 1){
-                  it[i] = minute_color;
+              for(int j = 0; j < 3; j++){
+                if( i == points[state] ){
+                  state = ++state % 3;
                 }
               }
-              i--;
-              if(i < 0) i = 59;
             }
-
-            for(int i = minute;(i != second && i != hour) || (second == minute && i != hour);){
-              if( i < 0 || i > 59) ESP_LOGD("backfill","Minute - i = %d", i);
-              it[i] = minute_color;
-              i--;
-              if(i < 0) i = 59;
+                
+            if(second == hour){
+              hour_wipe = (hour_wipe - step);
+              if(hour_wipe < 0) hour_wipe += 60;
             }
-
-            for(int i = second;i != hour && i != minute && i < 60;){
-              if( i < 0 || i > 59) ESP_LOGD("backfill","Second - i = %d", i);
-              it[i] = second_color;
-              i--;
-              if(i < 0) i = 59;
-            }
-            
-            if(hour == minute && second > 1){
-              it[hour] = hour_color;
-              if(second % 2 == 1){
-                ESP_LOGD("same", "Hour equal minute");
-                it[minute] = minute_color;
-              }
+                
+            if(second == minute && second != hour){
+              minute_wipe = (minute_wipe - step);
+              if(minute_wipe < 0) minute_wipe += 60;
             }
             
             if(second > 59){
