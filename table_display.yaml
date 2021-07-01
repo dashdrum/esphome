@@ -81,8 +81,8 @@ display:
     pages:
       - id: full_page
         lambda: |-
-          // Print "Living Room" in top center.
-          it.printf(64, 0, id(font1), TextAlign::TOP_CENTER, "Living Room");
+          // Print title in top center.
+          it.printf(64, 0, id(font1), TextAlign::TOP_CENTER, "TIme");
     
           // Print time in HH:MM format
           it.strftime(0, 55, id(font2), TextAlign::BASELINE_LEFT, "%I:%M", id(esptime).now());
@@ -98,7 +98,7 @@ display:
           }
       - id: indoor_temp
         lambda: |-
-          // Print "Living Room" in top center.
+          // Print Time in top center.
           it.printf(64, 0, id(font1), TextAlign::TOP_CENTER, "Living Room");
     
           // Print inside temperature (from homeassistant sensor)
@@ -115,8 +115,8 @@ display:
           }
       - id: outdoor_temp
         lambda: |-
-          // Print "Living Room" in top center.
-          it.printf(64, 0, id(font1), TextAlign::TOP_CENTER, "Living Room");
+          // Print Title in top center.
+          it.printf(64, 0, id(font1), TextAlign::TOP_CENTER, "Outdoor");
     
           // Print outside temperature (from homeassistant sensor)
           if (id(outside_temperature_2).has_state()) {

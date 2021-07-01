@@ -11,7 +11,7 @@ esphome:
     then:
       - light.turn_on:
           id: $device_name
-          effect: "Clock Backfill"
+          effect: "Clock"
 
 wifi: !include include/wifi.yaml
 
@@ -22,7 +22,7 @@ web_server:
 
 # Enable logging
 logger:
-  level: DEBUG
+  level: INFO
 
 # Enable Home Assistant API
 # api:
@@ -71,6 +71,7 @@ switch:
             std::string effects[] = {
                 "Clock",
                 "Clock Backfill",
+                "Clock Backwards",
                 "Clock Basic",
                 "Clock Candy Cane",
                 "Clock Comet",
@@ -83,7 +84,7 @@ switch:
                 "Color Test",
                 "Color Wipe"
               };
-            int num_effects = 13;
+            int num_effects = 14;
     
             int i = rand() % num_effects;
     
@@ -511,6 +512,65 @@ light:
             if(second == minute && second != hour){
               minute_wipe = (minute_wipe - step);
               if(minute_wipe < 0) minute_wipe += 60;
+            }
+            
+            if(second > 59){
+              it.all() = ESPColor(255,255,255);
+            }
+            
+      - addressable_lambda:
+          name: Clock Backwards
+          update_interval: 100ms
+          lambda:
+            const ESPColor hour_color = ESPColor(255,0,0);
+            const ESPColor minute_color = ESPColor(0,200,0);
+            const ESPColor second_color = ESPColor(0,200,200);
+            const ESPColor indicator_color = ESPColor(110,0,135);
+            const ESPColor minor_indicator_color = ESPColor(65,0,65);
+            int hour;
+            int hour_adj;
+            int minute;
+            int second;
+            static int state = 0;
+            
+            auto time = id(esptime).now();
+            if (!time.is_valid()) {
+              return;
+            }
+            
+            hour = (time.hour % 12) * 5;
+            minute = time.minute;
+            second = time.second;
+            
+            hour_adj = 5 * minute / 60;
+            hour = hour + hour_adj;
+            
+            it.all() = ESPColor(0,0,0);
+            
+            for(int i = 0; i < it.size();i++){
+              if(id(marker_setting) > 1){
+                if(i % (it.size() / 12) == 0){
+                  it[i] = minor_indicator_color;
+                }
+              }
+              if(id(marker_setting) > 0){
+                if(i % (it.size() / 4) == 0){
+                  it[i] = indicator_color;
+                }
+              }
+            }
+            
+            if( second < 60){
+              it[(60 - second) % 60] = second_color;
+            }
+            it[(60 - minute) % 60] = minute_color;
+            it[(60 - hour) % 60] = hour_color;
+            
+            if(hour == minute && second > 1){
+              if(second % 2 == 1){
+                it[(60 - minute) % 60] = minute_color;
+                ESP_LOGD("same", "Hour equal minute");
+              }
             }
             
             if(second > 59){
