@@ -6,6 +6,7 @@ temperature:
   oversampling: 16x
   expire_after: 30min
   accuracy_decimals: 2
+  device_class: "temperature"
   state_topic: $device_name/temperature/state
 pressure:
   name: $upper_device_name Pressure
@@ -21,6 +22,7 @@ humidity:
   oversampling: 16x
   expire_after: 30min
   accuracy_decimals: 2
+  device_class: "humidity"
   state_topic: $device_name/humidity/state
 address: 0x76
 update_interval: 60s

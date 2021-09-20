@@ -6,6 +6,8 @@ pin:
 model: DHT22
 temperature:
   name: $upper_device_name Temperature
+  device_class: "temperature"
 humidity:
   name: $upper_device_name Humidity
+  device_class: "humidity"
 update_interval: 10s

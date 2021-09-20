@@ -15,7 +15,7 @@ web_server:
   port: 80
 
 logger:
-  level: INFO
+  level: DEBUG
 
 ota:
 
@@ -34,10 +34,10 @@ sensor:
     temperature:
       name: "Garage Temperature 3"
       expire_after: 60min
-    humidity:
-      name: "Garage Humidity 3"
-      expire_after: 60min
-      icon: mdi:water-percent
+    # humidity:
+    #   name: "Garage Humidity 3"
+    #   expire_after: 60min
+    #   icon: mdi:water-percent
     update_interval: 60s
     
   - platform: wifi_signal
