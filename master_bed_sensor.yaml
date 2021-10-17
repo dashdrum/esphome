@@ -17,7 +17,7 @@ web_server:
   port: 80
 
 logger:
-  level: INFO
+  level: DEBUG
 
 # Enable Home Assistant API
 # api:

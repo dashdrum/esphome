@@ -60,11 +60,15 @@ light:
     id: $device_name
     state_topic: $device_name/light/led_mirror/state
     command_topic: $device_name/light/led_mirror/command
-    # availability_topic: led_mirror/status
     red: output_component_red
     green: output_component_green
     blue: output_component_blue
     white: output_component_white
+    on_turn_on:
+      then:
+        - light.turn_on:
+            id: $device_name
+            effect: "Random"
     effects:
       - lambda:
           name: Random
@@ -79,30 +83,6 @@ light:
             call.perform();
       - strobe:
       - flicker:
-      # - lambda:
-      #     name: Breathing Red
-      #     update_interval: 50ms
-      #     lambda: |-
-      #       static int step = 0;
-      #       const int step_limit = 80;
-      #       float brightness;
-        
-      #       auto call = id(led_mirror).turn_on();
-      #       call.set_rgb(1,0,0);
-      
-      #       brightness = (float)step / ((float)step_limit / 2.0f);
-      
-      #       if(brightness > 1.0f){
-      #       	brightness = 1.0f - (brightness - 1.0f );
-      #       }
-      
-      #       call.set_brightness(brightness);
-      #       call.set_white(0.0);
-      #       call.set_transition_length(0);
-      #       call.perform();
-            
-      #       step = ++step % step_limit;
-
       # - lambda:
       #     name: Presets
       #     update_interval: 100ms

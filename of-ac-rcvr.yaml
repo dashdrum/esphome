@@ -23,7 +23,7 @@ remote_receiver:
   pin: 
     number: GPIO2
     inverted: True
-  dump: all
+  # dump: all
   id: recvr1
   
 binary_sensor:
