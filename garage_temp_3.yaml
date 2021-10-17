@@ -30,15 +30,9 @@ mqtt: !include include/mqtt_deep_sleep.yaml
 i2c:
 
 sensor:
-  - platform: aht10
-    temperature:
-      name: "Garage Temperature 3"
-      expire_after: 60min
-    # humidity:
-    #   name: "Garage Humidity 3"
-    #   expire_after: 60min
-    #   icon: mdi:water-percent
-    update_interval: 60s
+
+  - !include include/bme280.yaml
+
     
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
