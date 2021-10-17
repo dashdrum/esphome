@@ -75,6 +75,7 @@ sensor:
       id: temp
       accuracy_decimals: 2
       expire_after: 60min
+      device_class: temperature
     humidity:
       name: $upper_device_name Humidity
       id: humid

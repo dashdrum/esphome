@@ -35,12 +35,14 @@ sensor:
       name: "Temp Compare SHT30D Temperature"
       expire_after: 60min
       accuracy_decimals: 2
+      device_class: "temperature"
       state_topic: $device_name/sht3xd/temperature/state
     humidity:
       name: "Temp Compare SHT30D Humidity"
       expire_after: 60min
       accuracy_decimals: 2
       icon: mdi:water-percent
+      device_class: "humidity"
       state_topic: $device_name/sht3xd/humidity/state
     update_interval: 15min
     
@@ -51,6 +53,7 @@ sensor:
       oversampling: 16x
       expire_after: 60min
       accuracy_decimals: 2
+      device_class: "temperature"
       state_topic: $device_name/bme280/temperature/state
     pressure:
       name: "Temp Compare BME280 Pressure"
@@ -59,12 +62,14 @@ sensor:
       unit_of_measurement: "mbar"
       accuracy_decimals: 2
       icon: mdi:gauge
+      device_class: "pressure"
       state_topic: $device_name/bme280/pressure/state
     humidity:
       name: "Temp Compare BME280 Humidity"
       expire_after: 60min
       accuracy_decimals: 2
       icon: mdi:water-percent
+      device_class: "humidity"
       state_topic: $device_name/bme280/humidity/state
     address: 0x76
     update_interval: 10min

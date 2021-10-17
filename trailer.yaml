@@ -13,14 +13,14 @@ captive_portal:
 
 # Enable logging
 logger:
-  level: DEBUG
+  level: ERROR
 
 # Enable Home Assistant API
 # api:
 
-ota:
+# ota: ## No OTA - memory is tight
 
-mqtt: !include include/mqtt_deep_sleep_device_name.yaml
+mqtt: !include include/mqtt_deep_sleep.yaml
 
 globals:
   - id: ruuvi_count
@@ -57,6 +57,7 @@ sensor:
     temperature:
       name: $upper_device_name Fridge Temperature
       expire_after: 60min
+      device_class: "temperature"
       # Device will stay awake until Ruuvi values are received the 2nd time (or deep sleep timer is reached)
       # Used 2nd time as the deep sleep happens before the values are published in MQTT
       on_value:  

@@ -55,6 +55,7 @@ sensor:
     temperature:
       name: $upper_device_name Temperature
       expire_after: 60min
+      device_class: "temperature"
       # Device will stay awake until Ruuvi values are received the 2nd time (or deep sleep timer is reached)
       # Why the 2nd time? The on_value event triggers BEFORE the values are published in MQTT
       on_value:  
