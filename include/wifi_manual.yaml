@@ -1,0 +1,15 @@
+ssid: !secret wifi_ssid
+password: !secret wifi_password
+
+manual_ip:
+  static_ip: $ip_address
+  gateway: 192.168.254.1
+  subnet: 255.255.255.0
+
+# When switching a device from DHCP to manual, uncomment the following line and enter the current IP. Recomment after flashing and reinstall.
+# use_address: 192.168.254.196
+
+# Enable fallback hotspot (captive portal) in case wifi connection fails
+ap:
+  ssid: $upper_device_name
+  password: !secret hotspot_password
