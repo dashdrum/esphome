@@ -1,0 +1,41 @@
+substitutions:
+  device_name: mech
+  upper_device_name: Mechanical Room
+  ip_address: 192.168.254.201
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi_manual.yaml
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+web_server:
+  port: 80
+
+mqtt: !include include/mqtt_deep_sleep.yaml
+
+i2c:
+
+sensor:
+  - !include include/sht3xd-45.yaml
+
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+    
+deep_sleep: !include include/deep_sleep_15.yaml
+
+switch:
+  - platform: restart
+    name: $upper_device_name Restart
