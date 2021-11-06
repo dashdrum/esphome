@@ -1,0 +1,240 @@
+substitutions:
+  device_name: shellyswitch25_68c63afb7b5c
+  upper_device_name: Shelly 3-Way Switch
+  ip_address: 192.168.254.49
+  channel_1: Relay 1
+  channel_2: Relay 2
+  at_least: "1.9"
+  at_most: "2.0"
+
+  max_power: "2000.0"
+  max_temp: "70.0"
+
+# Based on "Configuration as relay with overpower and overtemperature protection"
+# from https://www.esphome-devices.com/devices/Shelly-25
+# Thanks to Datux modified and tested by gieljnssns
+
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: esp01_1m
+
+wifi: !include include/wifi_manual.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: INFO
+
+api:
+
+ota:
+
+# mqtt: !include include/mqtt.yaml
+
+time:
+  - platform: sntp
+    id: esptime
+    timezone: America/Detroit
+    servers:
+      - 192.168.254.118
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+
+i2c:
+  sda: GPIO12
+  scl: GPIO14
+
+sensor:
+  - platform: ade7953
+    irq_pin: GPIO16 # Prevent overheating by setting this
+    voltage:
+      name: ${device_name} Voltage
+    # On the Shelly 2.5 channels are mixed ch1=B ch2=A
+    current_a:
+      name: $device_name ${channel_2} Current
+      internal: true
+    current_b:
+      name: $device_name ${channel_1} Current
+      internal: true
+    active_power_a:
+      name: $device_name ${channel_2} Power
+      id: power_channel_2
+      # active_power_a is normal, so don't multiply by -1
+      on_value_range:
+        - above: ${max_power}
+          then:
+            - switch.turn_off: shelly_relay_2
+            - homeassistant.service:
+                service: persistent_notification.create
+                data:
+                  title: Message from ${device_name}
+                data_template:
+                  message: Switch turned off because power exceeded ${max_power}W
+                  
+        # Power up event.  If the switch is not "ON", turn it on
+        - above: ${at_least}
+          then:
+            - if:
+                condition:
+                  switch.is_off: three_way_switch
+                then:
+                  - switch.turn_on: three_way_switch
+                  
+        # Power down event. IF the switch is not "OFF", turn it off
+        - below: ${at_most}
+          then:
+            - if:
+                condition:
+                  switch.is_on: three_way_switch
+                  # lambda: 'return  (id(three_way_switch).state && id(power_channel_1).state < ${at_most} )' 
+                then:
+                  - switch.turn_off: three_way_switch
+                        
+    active_power_b:
+      name: $device_name ${channel_1} Power
+      id: power_channel_1
+      # active_power_b is inverted, so multiply by -1
+      filters:
+        - multiply: -1
+      on_value_range:
+        - above: ${max_power}
+          then:
+            - switch.turn_off: shelly_relay_1
+            - homeassistant.service:
+                service: persistent_notification.create
+                data:
+                  title: Message from ${device_name}
+                data_template:
+                  message: Switch turned off because power exceeded ${max_power}W
+                  
+        # Power up event.  If the switch is not "ON", turn it on
+        - above: ${at_least}
+          then:
+            - if:
+                condition:
+                  switch.is_off: three_way_switch
+                then:
+                  - switch.turn_on: three_way_switch
+                  
+        # Power down event. IF the switch is not "OFF", turn it off
+        - below: ${at_most}
+          then:
+            - if:
+                condition:
+                  switch.is_on: three_way_switch
+                  # lambda: 'return  (id(temp_switch).state && id(power_channel_2).state < ${at_most} )' 
+                then:
+                  - switch.turn_off: three_way_switch
+                  
+    update_interval: 1s
+
+  - platform: total_daily_energy
+    name: $device_name ${channel_1} Energy
+    power_id: power_channel_1
+    filters:
+      # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    unit_of_measurement: kW
+
+  - platform: total_daily_energy
+    name: $device_name ${channel_2} Energy
+    power_id: power_channel_2
+    filters:
+      # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    unit_of_measurement: kW
+
+  # NTC Temperature
+  - platform: ntc
+    sensor: temp_resistance_reading
+    name: ${device_name} Temperature
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    icon: "mdi:thermometer"
+    calibration:
+      b_constant: 3350
+      reference_resistance: 10kOhm
+      reference_temperature: 298.15K
+    on_value_range:
+      - above: ${max_temp}
+        then:
+          - switch.turn_off: shelly_relay_1
+          - switch.turn_off: shelly_relay_2
+          - homeassistant.service:
+              service: persistent_notification.create
+              data:
+                title: Message from ${device_name}
+              data_template:
+                message: Switch turned off because temperature exceeded ${max_temp}°C
+  - platform: resistance
+    id: temp_resistance_reading
+    sensor: temp_analog_reading
+    configuration: DOWNSTREAM
+    resistor: 32kOhm
+  - platform: adc
+    id: temp_analog_reading
+    pin: A0
+
+status_led:
+  pin:
+    number: GPIO0
+    inverted: yes
+
+switch:
+  - platform: template
+    name: $device_name $upper_device_name
+    id: three_way_switch
+    icon: 'mdi:lightbulb-outline'
+    lambda: 'return (id(power_channel_1).state > ${at_least} || id(power_channel_2).state > ${at_least});'
+    turn_on_action:
+      - if:
+          condition:
+            lambda: 'return (id(power_channel_1).state < ${at_most} && id(power_channel_2).state < ${at_most});'
+          then:
+            - switch.toggle: shelly_relay_1
+    turn_off_action:
+      - if:
+          condition:
+            lambda: 'return (id(power_channel_1).state > ${at_least} || id(power_channel_2).state > ${at_least});'
+          then:
+            - switch.toggle: shelly_relay_1
+      
+  - platform: gpio
+    id: shelly_relay_1
+    name: $device_name ${channel_1}
+    pin: GPIO4
+    icon: "mdi:electric-switch"
+    restore_mode: RESTORE_DEFAULT_ON
+    # Keep relay 2 setting the oppositie of relay 1
+    on_turn_on:
+    - switch.turn_off: shelly_relay_2
+    on_turn_off:
+    - switch.turn_on: shelly_relay_2
+    
+  - platform: gpio
+    id: shelly_relay_2
+    name: $device_name ${channel_2}
+    pin: GPIO15
+    icon: "mdi:electric-switch"
+    restore_mode: RESTORE_DEFAULT_ON
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO13
+    name: "$device_name ${channel_1} Input"
+    # Edge switch
+    on_state:
+      then:
+        - switch.toggle: shelly_relay_1
+        
+  - platform: gpio
+    pin:
+      number: GPIO5
+    name: "$device_name ${channel_2} Input"
+    # Switch is detached (input is ignored)
