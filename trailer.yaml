@@ -1,13 +1,14 @@
 substitutions:
   device_name: trailer
   upper_device_name: Trailer
+  ip_address: 192.168.254.208
 
 esphome:
   name: $device_name
   platform: ESP32
   board: wemos_d1_mini32
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_manual.yaml
 
 captive_portal:
 

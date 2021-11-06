@@ -1,13 +1,14 @@
 substitutions:
   device_name: b2
   upper_device_name: Spare Room
+  ip_address: 192.168.254.206
 
 esphome:
   name: $device_name
   platform: ESP8266
   board: d1_mini
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_manual.yaml
 
 captive_portal:
 

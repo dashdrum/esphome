@@ -1,13 +1,14 @@
 substitutions:
   device_name: workshop
   upper_device_name: Workshop
+  ip_address: 192.168.254.210
 
 esphome:
   name: $device_name
   platform: ESP8266
   board: d1_mini
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_manual.yaml
 
 captive_portal:
 

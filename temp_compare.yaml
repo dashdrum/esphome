@@ -1,13 +1,14 @@
 substitutions:
   device_name: temp_compare
   upper_device_name: Temp Compare
+  ip_address: 192.168.254.207
 
 esphome:
   name: $device_name
   platform: ESP8266
   board: d1_mini
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_manual.yaml
 
 captive_portal:
 
