@@ -162,9 +162,9 @@ sensor:
 
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
-    update_interval: 60s 
+    update_interval: 30min
     icon: mdi:wifi
-  
-switch:
+      
+button:
   - platform: restart
-    name: $upper_device_name Restart 
+    name: $upper_device_name Restart

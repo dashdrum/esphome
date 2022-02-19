@@ -39,8 +39,8 @@ sensor:
     filters:
       - multiply: 100
     unit_of_measurement: "%"
-    icon: mdi:battery
     name: $upper_device_name Battery
+    device_class: battery
     update_interval: 60s
     expire_after: 30min
     state_topic: $device_name/battery/state
@@ -48,8 +48,8 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
-  
-switch:
+      
+button:
   - platform: restart
     name: $upper_device_name Restart
     

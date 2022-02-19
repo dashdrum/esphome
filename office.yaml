@@ -42,6 +42,7 @@ sensor:
           send_first_at: 1
     unit_of_measurement: "%"
     name: $upper_device_name Battery
+    device_class: battery
     update_interval: 60s
     expire_after: 60min
     state_topic: $device_name/battery/state
@@ -51,7 +52,7 @@ sensor:
     update_interval: 60s
     
 deep_sleep: !include include/deep_sleep_15.yaml
-
-switch:
+      
+button:
   - platform: restart
     name: $upper_device_name Restart

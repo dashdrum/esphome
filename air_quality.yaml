@@ -25,7 +25,7 @@ ota:
 
 mqtt: !include include/mqtt.yaml
       
-switch:
+button:
   - platform: restart
     name: $upper_device_name Restart
     
@@ -47,8 +47,8 @@ sensor:
     
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
-    update_interval: 60s
-    expire_after: 60min
+    update_interval: 30min
+    expire_after: 90min
     icon: mdi:wifi
 
   - platform: sgp30
@@ -56,12 +56,16 @@ sensor:
       name: $upper_device_name eCO2
       id: eco2
       accuracy_decimals: 0
+      filters:
+        - delta: 11.0
     tvoc:
       name: $upper_device_name TVOC
       id: tvoc
       accuracy_decimals: 0
+      filters:
+        - delta: 10.0
     address: 0x58
-    update_interval: 60s
+    update_interval: 1s
     compensation:
       temperature_source: temp
       humidity_source: humid
@@ -82,55 +86,7 @@ sensor:
       icon: mdi:water-percent
       expire_after: 60min
     address: 0x5c
-    update_interval: 60s
-    
-  # - platform: template
-  #   name: $upper_device_name Temp Linear Correction
-  #   id: temp_linear
-  #   accuracy_decimals: 2
-  #   icon: mdi:thermometer
-  #   unit_of_measurement: "°F"
-  #   lambda: |-
-  #     if (id(temp).state) {
-  #       return (id(temp).state * 9/5) + 32;
-  #     } else {
-  #       return {};
-  #     }
-  #   filters:
-  #     - calibrate_linear:   # in Fahrenheit
-  #       - 36.14 -> 32.67
-  #       - 66.56 -> 63.79
-  #       - 69.44 -> 64.92
-  #       - 75.74 -> 70.52
-  #       - 76.64 -> 72.41
-  #       - 78.44 -> 74.76
-  #       - 79.16 -> 75.81
-  #   update_interval: 60s
-    
-  # - platform: template
-  #   name: $upper_device_name Temp Polynomial Correction
-  #   id: temp_poly
-  #   accuracy_decimals: 2
-  #   icon: mdi:thermometer
-  #   unit_of_measurement: "°F"
-  #   lambda: |-
-  #     if (id(temp).state) {
-  #       return (id(temp).state * 9/5) + 32;
-  #     } else {
-  #       return {};
-  #     }
-  #   filters:
-  #       - calibrate_polynomial:
-  #           degree: 4
-  #           datapoints:   # in Fahrenheit
-  #             - 36.14 -> 32.67
-  #             - 66.56 -> 63.79
-  #             - 69.44 -> 64.92
-  #             - 75.74 -> 70.52
-  #             - 76.64 -> 72.41
-  #             - 78.44 -> 74.76
-  #             - 79.16 -> 75.81
-  #   update_interval: 60s
+    update_interval: 10min
     
   - platform: template
     id: tempf
@@ -140,6 +96,7 @@ sensor:
       } else {
         return {};
       }
+    update_interval: 10min
     
 font:
   - file: 'fonts/arial.ttf'

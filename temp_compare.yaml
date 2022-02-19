@@ -74,26 +74,26 @@ sensor:
       state_topic: $device_name/bme280/humidity/state
     address: 0x76
     update_interval: 10min
-  - platform: template
-    name: "Temp Compare BME280 Equiv Sea Level Pressure"
-    lambda: |-
-      const float STANDARD_ALTITUDE = 204; // in meters, see note
-      return id(bme280_pressure).state / powf(1 - ((0.0065 * STANDARD_ALTITUDE) /
-        (id(bme280_temperature).state + (0.0065 * STANDARD_ALTITUDE) + 273.15)), 5.257); // in hPa
-    update_interval: 10min
-    unit_of_measurement: 'mBar'
-    expire_after: 60min
-    accuracy_decimals: 2
-    icon: mdi:gauge
-    state_topic: $device_name/bme280/equiv_sea_level_pressure/state
+  # - platform: template
+  #   name: "Temp Compare BME280 Equiv Sea Level Pressure"
+  #   lambda: |-
+  #     const float STANDARD_ALTITUDE = 204; // in meters, see note
+  #     return id(bme280_pressure).state / powf(1 - ((0.0065 * STANDARD_ALTITUDE) /
+  #       (id(bme280_temperature).state + (0.0065 * STANDARD_ALTITUDE) + 273.15)), 5.257); // in hPa
+  #   update_interval: 10min
+  #   unit_of_measurement: 'mBar'
+  #   expire_after: 60min
+  #   accuracy_decimals: 2
+  #   icon: mdi:gauge
+  #   state_topic: $device_name/bme280/equiv_sea_level_pressure/state
     
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
     expire_after: 60min
     icon: mdi:wifi
-  
-switch:
+      
+button:
   - platform: restart
     name: $upper_device_name Restart
     

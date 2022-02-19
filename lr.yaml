@@ -36,6 +36,7 @@ sensor:
   #   filters:
   #     - multiply: 4.111111
   #   name: $upper_device_name Battery
+  #   device_class: battery
   #   update_interval: 60s
   #   expire_after: 30min
   #   state_topic: $device_name/battery/state
@@ -45,7 +46,7 @@ sensor:
     update_interval: 60s
     
 deep_sleep: !include include/deep_sleep_15.yaml
-
-switch:
+      
+button:
   - platform: restart
     name: $upper_device_name Restart

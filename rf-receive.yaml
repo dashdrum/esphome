@@ -35,10 +35,11 @@ mqtt:
     topic: $device_name/willdisable
     payload: disable
       
-switch:
+button:
   - platform: restart
     name: $upper_device_name Restart
-    
+      
+switch:
   - platform: template
     name: RV Light
     turn_on_action:

@@ -42,8 +42,8 @@ sensor:
     filters:
       - multiply: 90.909    ## Connected to 5v external power supply - always reports 100%
     unit_of_measurement: "%"
-    icon: mdi:battery
     name: $upper_device_name Battery
+    device_class: battery
     update_interval: 60s
     expire_after: 60min
     state_topic: $device_name/battery/state
@@ -105,7 +105,7 @@ deep_sleep:
   run_duration: 120s  ## this is a long duration, trying to pickup the Ruuvi BLE beacon
   sleep_duration: 15min
   id: deep_sleep_1
-
-switch:
+      
+button:
   - platform: restart
     name: $upper_device_name Restart

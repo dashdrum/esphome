@@ -1,8 +1,8 @@
 substitutions:
-  device_name: garage_left_bay
-  upper_device_name: Garage Left Bay
+  device_name: garage-bin
+  upper_device_name: Garage Bin
   timeout: 2.7m  #greater than garage height
-  max_distance: "2.65" #actual height of garage
+  max_distance: "0.8" # width of bin area in meters
 
 esphome:
   name: $device_name
@@ -29,7 +29,7 @@ ota:
 
 sensor:
   - platform: ultrasonic
-    name: HC-SR04
+    # name: HC-SR04
     trigger_pin: D1
     echo_pin: D2
     timeout: $timeout
@@ -40,9 +40,9 @@ sensor:
       - lambda:
           if (isnan(x)) return $max_distance;
           return x;
-      - exponential_moving_average:
-          alpha: 0.1
-          send_every: 10
+      # - exponential_moving_average:
+      #     alpha: 0.1
+      #     send_every: 2
       - delta: 0.1
 
   - platform: wifi_signal
@@ -54,11 +54,11 @@ binary_sensor:
   - platform: template
     name: $upper_device_name
     lambda: |-
-      if (id(ultra_sensor).state < 1.2 ) { // in meters
-        // Truck is in.
+      if (id(ultra_sensor).state < 0.4 ) {  // Must be this close to wall in meters
+        // within required distance
         return true;
       } else {
-        // truck is out
+        // outside required distance
         return false;
       }
       

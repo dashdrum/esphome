@@ -55,15 +55,15 @@ globals:
      ## 0 - none
      ## 1 - main
      ## 2 - all
-
-switch:
+      
+button:
   - platform: restart
     name: $upper_device_name Restart
-    
+
   - platform: template
     name: $upper_device_name Random Effect
     id: random_effect
-    turn_on_action:
+    on_press:
       - light.turn_on:
           id: $device_name
           effect: !lambda |-

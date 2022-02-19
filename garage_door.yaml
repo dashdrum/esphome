@@ -45,21 +45,19 @@ sensor:
     
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
-    update_interval: 60s
+    update_interval: 30min
     icon: mdi:wifi
     
-switch:
+output:
   - platform: gpio
-    id: door_switch
     pin: D1
-    restore_mode: ALWAYS_OFF
+    id: output1
 
-  - platform: template
-    id: push_button    
-    turn_on_action:
-      - switch.turn_on: door_switch
-      - delay: 600ms
-      - switch.turn_off: door_switch
+button:
+  - platform: output
+    id: push_button
+    output: output1
+    duration: 600ms      
       
   - platform: restart
     name: $upper_device_name Restart
@@ -95,8 +93,8 @@ cover:
         return COVER_CLOSED;
       }
     open_action:
-      - switch.turn_on: push_button
+      - button.press: push_button
     close_action:
-      - switch.turn_on: push_button
+      - button.press: push_button
     stop_action:
-      - switch.turn_on: push_button
+      - button.press: push_button

@@ -6,7 +6,8 @@ esphome:
   name: $device_name
   platform: ESP32
   # board: esp32doit-devkit-v1
-  board: wemos_d1_mini32
+  # board: wemos_d1_mini32
+  board: esp32dev
 
 wifi: !include include/wifi.yaml
 
@@ -17,24 +18,14 @@ web_server:
 
 # Enable logging
 logger:
-  level: DEBUG
+  level: INFO
 
 # Enable Home Assistant API
 # api:
 
 ota:
 
-mqtt: 
-  broker: !secret mqtt_broker
-  username: !secret mqtt_username
-  password: !secret mqtt_password
-  # Needed when using deep sleep mode
-  birth_message:
-    topic: $device_name/birthdisable
-    payload: disable
-  will_message:
-    topic: $device_name/willdisable
-    payload: disable
+mqtt: !include include/mqtt.yaml
       
 switch:
   - platform: restart
@@ -42,30 +33,100 @@ switch:
 
 esp32_ble_tracker:
 
-i2c:
+ble_client:
+  - mac_address: ed:c1:c6:bb:2c:74
+    id: soma_shade
     
 sensor:
-
-  - !include include/sht3xd-45.yaml
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma battery level"
+    service_uuid: '180f'
+    characteristic_uuid: '2a19'
+    icon: 'mdi:battery'
+    unit_of_measurement: '%'
+    filters:
+      - filter_out: nan
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 1800-2A00"
+    service_uuid: '1800'
+    characteristic_uuid: '2A00'
+    filters:
+      - filter_out: nan
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 1800-2A01"
+    service_uuid: '1800'
+    characteristic_uuid: '2A01'
+    filters:
+      - filter_out: nan
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 1800-2A04"
+    service_uuid: '1800'
+    characteristic_uuid: '2A04'
+    filters:
+      - filter_out: nan
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 1801-2A05"
+    service_uuid: '1801'
+    characteristic_uuid: '2A05'
+    filters:
+      - filter_out: nan
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 180A-2A29"
+    service_uuid: '180A'
+    characteristic_uuid: '2A29'
+    filters:
+      - filter_out: nan
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 180A-2A25"
+    service_uuid: '180A'
+    characteristic_uuid: '2A25'
+    filters:
+      - filter_out: nan
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 180A-2A27"
+    service_uuid: '180A'
+    characteristic_uuid: '2A27'
+    filters:
+      - filter_out: nan
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 180A-2A26"
+    service_uuid: '180A'
+    characteristic_uuid: '2A26'
+    filters:
+      - filter_out: nan
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 180A-2A28"
+    service_uuid: '180A'
+    characteristic_uuid: '2A28'
+    filters:
+      - filter_out: nan
+    
   
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
     
-  - platform: ruuvitag
-    mac_address: !secret trailer_fridge_ruuvi_mac
-    temperature:
-      name: $upper_device_name Fridge Temperature
-      expire_after: 60min
-      # on_value:  # Device will stay awake until Ruuvi values are published (or deep sleep timer is reached)
-      #   then:
-      #     - logger.log: "  Fridge Temp Published!!"
-      #     - deep_sleep.enter: deep_sleep_1
-    measurement_sequence_number:
-      name: $upper_device_name Fridge Measurement Sequence Number
-      expire_after: 60min
-      
-deep_sleep: 
-  run_duration: 60s  ## this is a long duration, trying to pickup the Ruuvi BLE beacon
-  sleep_duration: 15min
-  id: deep_sleep_1
+binary_sensor:
+  # Presence based on MAC address
+  - platform: ble_presence
+    mac_address: ed:c1:c6:bb:2c:74
+    name: "ESP32 BLE Tracker Soma Shade"

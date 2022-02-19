@@ -30,7 +30,7 @@ output: !include include/onboard_led.yaml
 sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
-    update_interval: 60s
+    update_interval: 30min
     icon: mdi:wifi
       
 remote_transmitter:
@@ -38,12 +38,12 @@ remote_transmitter:
   carrier_duty_percent: 50%
   id: remote_1
 
-# Individual switches
-switch:
+# Individual buttons
+button:
   - platform: template
     name: Office AC Power
     id: power
-    turn_on_action:
+    on_press:
       - remote_transmitter.transmit_nec:
           address: 0x80ff
           command: 0x48b7
@@ -54,7 +54,7 @@ switch:
   - platform: template
     name: Office AC Mode
     id: mode
-    turn_on_action:
+    on_press:
       - output.turn_on: onboard_led
       - remote_transmitter.transmit_nec:
           address: 0x80ff
@@ -65,7 +65,7 @@ switch:
   - platform: template
     name: Office AC Minus
     id: minus
-    turn_on_action:
+    on_press:
       - output.turn_on: onboard_led
       - remote_transmitter.transmit_nec:
           address: 0x80ff
@@ -76,7 +76,7 @@ switch:
   - platform: template
     name: Office AC Plus
     id: plus
-    turn_on_action:
+    on_press:
       - output.turn_on: onboard_led
       - remote_transmitter.transmit_nec:
           address: 0x80ff
@@ -87,7 +87,7 @@ switch:
   - platform: template
     name: Office AC Timer
     id: timer
-    turn_on_action:
+    on_press:
       - output.turn_on: onboard_led
       - remote_transmitter.transmit_nec:
           address: 0x80ff
@@ -98,7 +98,7 @@ switch:
   - platform: template
     name: Office AC Fan
     id: fan
-    turn_on_action:
+    on_press:
       - output.turn_on: onboard_led
       - remote_transmitter.transmit_nec:
           address: 0x80ff
@@ -109,7 +109,7 @@ switch:
   - platform: template
     name: Office AC Eco
     id: eco
-    turn_on_action:
+    on_press:
       - output.turn_on: onboard_led
       - remote_transmitter.transmit_nec:
           address: 0x80ff
@@ -120,7 +120,7 @@ switch:
   - platform: template
     name: Office AC Display
     id: display
-    turn_on_action:
+    on_press:
       - output.turn_on: onboard_led
       - remote_transmitter.transmit_nec:
           address: 0x80ff
@@ -131,7 +131,7 @@ switch:
   - platform: template
     name: Office AC Sleep
     id: sleepy
-    turn_on_action:
+    on_press:
       - output.turn_on: onboard_led
       - remote_transmitter.transmit_nec:
           address: 0x80ff

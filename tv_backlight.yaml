@@ -49,9 +49,11 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
-  
-switch:
+      
+button:
   - platform: restart
     name: $upper_device_name Restart
+    
+switch:
     
   - !include include/effects_switch.yaml

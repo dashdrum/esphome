@@ -3,11 +3,11 @@ username: !secret mqtt_username
 password: !secret mqtt_password
 # Needed when using deep sleep mode
 birth_message:
-  topic: " "
-  payload: disabled
+  topic: $device_name/birthdisable
+  payload: disable
 will_message:
-  topic: " "
-  payload: disabled
+  topic: $device_name/willdisable
+  payload: disable
 on_message:
   - topic: $device_name/defeat_sleep/state
     payload: 'on'

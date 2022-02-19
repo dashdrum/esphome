@@ -38,6 +38,6 @@ sensor:
     expire_after: 60min
     icon: mdi:wifi
   
-switch:
+button:
   - platform: restart
     name: $upper_device_name Restart

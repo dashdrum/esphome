@@ -89,7 +89,7 @@ binary_sensor:
     nec:
       address: 0x80FF
       command: 0x50AF
-
-switch:
+      
+button:
   - platform: restart
     name: $upper_device_name Restart

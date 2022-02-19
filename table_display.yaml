@@ -34,7 +34,7 @@ time:
       - 0.pool.ntp.org
       - 1.pool.ntp.org
       
-switch:
+button:
   - platform: restart
     name: $upper_device_name Restart
     
@@ -42,7 +42,7 @@ sensor:
 
   - platform: mqtt_subscribe
     id: inside_temperature_2
-    topic: lr/temperature/state
+    topic: lr/sht3xd/temperature/state
     filters:
       - lambda: return x * (9.0/5.0) + 32.0;
 
@@ -54,7 +54,7 @@ sensor:
   
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
-    update_interval: 60s
+    update_interval: 30min
     icon: mdi:wifi
     
 font:

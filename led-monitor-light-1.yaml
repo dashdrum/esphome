@@ -1,0 +1,45 @@
+substitutions:
+  device_name: led_monitor_light_1
+  upper_device_name: LED Monitor Light 1
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: INFO
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 30min
+    icon: mdi:wifi
+    
+# Example configuration entry
+light:
+  - platform: monochromatic
+    name: $upper_device_name
+    output: output_component1
+
+# Example output entry
+output:
+  - platform: esp8266_pwm
+    id: output_component1
+    pin: D0

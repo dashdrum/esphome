@@ -32,7 +32,7 @@ sensor:
     
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
-    update_interval: 60s
+    update_interval: 30min
     icon: mdi:wifi
 
 binary_sensor:
@@ -52,7 +52,7 @@ binary_sensor:
       - delayed_on: 20ms
       - invert:
     state_topic: $device_name/door/state
-  
-switch:
+      
+button:
   - platform: restart
     name: $upper_device_name Restart

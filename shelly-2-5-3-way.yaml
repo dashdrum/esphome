@@ -1,7 +1,28 @@
+
+# Based on "Configuration as relay with overpower and overtemperature protection"
+# from https://www.esphome-devices.com/devices/Shelly-25
+# Thanks to Datux modified and tested by gieljnssns
+
+# This project provides an easy automation for a 3-way switch circuit.  The
+# public interface reports as a single switch with light on or off, while
+# the Shelly 2.5 relays allow the 3-way switch function to operate.
+
+# The built-in power sensors report if the light is on or off, and a template
+# switch uses these values to report state.
+
+# The Shelly 2.5 is wired in front of a 3-way switch which is receiving line
+# power in the circuit box.  The traveller wires from the switch connect to the
+# SW inputs on the Shelly, while the wires heading to the other switch are
+# connected to the Output channels.
+
+#.Update the ip_address and mac_address before installing
+
 substitutions:
-  device_name: shellyswitch25_68c63afb7b5c
+  device_name: shellyswitch25
   upper_device_name: Shelly 3-Way Switch
   ip_address: 192.168.254.49
+  # mac_address: 68c63afb7b5c
+  mac_address: 00d075f
   channel_1: Relay 1
   channel_2: Relay 2
   at_least: "1.9"
@@ -10,12 +31,8 @@ substitutions:
   max_power: "2000.0"
   max_temp: "70.0"
 
-# Based on "Configuration as relay with overpower and overtemperature protection"
-# from https://www.esphome-devices.com/devices/Shelly-25
-# Thanks to Datux modified and tested by gieljnssns
-
 esphome:
-  name: ${device_name}
+  name: ${device_name}_${mac_address}
   platform: ESP8266
   board: esp01_1m
 
@@ -32,9 +49,9 @@ logger:
 
 api:
 
-ota:
+# ota:
 
-# mqtt: !include include/mqtt.yaml
+mqtt: !include include/mqtt.yaml
 
 time:
   - platform: sntp
@@ -44,6 +61,8 @@ time:
       - 192.168.254.118
       - 0.pool.ntp.org
       - 1.pool.ntp.org
+      
+ota:
 
 i2c:
   sda: GPIO12
@@ -53,16 +72,16 @@ sensor:
   - platform: ade7953
     irq_pin: GPIO16 # Prevent overheating by setting this
     voltage:
-      name: ${device_name} Voltage
+      name: ${device_name}_${mac_address} Voltage
+      icon: "mdi:sine-wave"
     # On the Shelly 2.5 channels are mixed ch1=B ch2=A
     current_a:
-      name: $device_name ${channel_2} Current
+      id: current_a
       internal: true
     current_b:
-      name: $device_name ${channel_1} Current
+      id: current_b
       internal: true
     active_power_a:
-      name: $device_name ${channel_2} Power
       id: power_channel_2
       # active_power_a is normal, so don't multiply by -1
       on_value_range:
@@ -96,7 +115,6 @@ sensor:
                   - switch.turn_off: three_way_switch
                         
     active_power_b:
-      name: $device_name ${channel_1} Power
       id: power_channel_1
       # active_power_b is inverted, so multiply by -1
       filters:
@@ -134,16 +152,20 @@ sensor:
     update_interval: 1s
 
   - platform: total_daily_energy
-    name: $device_name ${channel_1} Energy
+    id: total_daily_energy_1
     power_id: power_channel_1
+    method: trapezoid 
+    accuracy_decimals: 3
     filters:
       # Multiplication factor from W to kW is 0.001
       - multiply: 0.001
     unit_of_measurement: kW
 
   - platform: total_daily_energy
-    name: $device_name ${channel_2} Energy
+    id: total_daily_energy_2
     power_id: power_channel_2
+    method: trapezoid 
+    accuracy_decimals: 3
     filters:
       # Multiplication factor from W to kW is 0.001
       - multiply: 0.001
@@ -152,7 +174,7 @@ sensor:
   # NTC Temperature
   - platform: ntc
     sensor: temp_resistance_reading
-    name: ${device_name} Temperature
+    name: ${device_name}_${mac_address} Temperature
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     icon: "mdi:thermometer"
@@ -173,12 +195,40 @@ sensor:
                 message: Switch turned off because temperature exceeded ${max_temp}°C
   - platform: resistance
     id: temp_resistance_reading
+    name: temp_resistance
     sensor: temp_analog_reading
     configuration: DOWNSTREAM
     resistor: 32kOhm
   - platform: adc
+    name: temp_analog
     id: temp_analog_reading
     pin: A0
+    
+    ## These template sensors report combined values for power, energy, and current 
+  - platform: template
+    name: ${device_name}_${mac_address} Current
+    id: combined_current
+    lambda: 'return (id(current_a).state + id(current_b).state);'
+    unit_of_measurement: A
+    icon: "mdi:current-ac"
+    update_interval: 10s
+    
+  - platform: template
+    id: combined_active_power
+    name: ${device_name}_${mac_address} Power
+    lambda: 'return (id(power_channel_2).state + id(power_channel_1).state);'
+    unit_of_measurement: W
+    icon: "mdi:flash"
+    update_interval: 10s
+    
+  - platform: template
+    id: combined_total_daily_energy
+    name: ${device_name}_${mac_address} Energy
+    accuracy_decimals: 3
+    lambda: 'return (id(total_daily_energy_2).state + id(total_daily_energy_1).state);'
+    unit_of_measurement: kW
+    icon: "mdi:lightning-bolt"
+    update_interval: 10s
 
 status_led:
   pin:
@@ -186,18 +236,22 @@ status_led:
     inverted: yes
 
 switch:
+    # This template switch reports the public state of the switch
   - platform: template
-    name: $device_name $upper_device_name
+    name: ${device_name}_${mac_address} $upper_device_name
     id: three_way_switch
     icon: 'mdi:lightbulb-outline'
+    # If power is high, the switch should report on
     lambda: 'return (id(power_channel_1).state > ${at_least} || id(power_channel_2).state > ${at_least});'
     turn_on_action:
+      # If the power levels are low, toggle the relay to turn on the light
       - if:
           condition:
             lambda: 'return (id(power_channel_1).state < ${at_most} && id(power_channel_2).state < ${at_most});'
           then:
             - switch.toggle: shelly_relay_1
     turn_off_action:
+      # If the power levels are high, toggle the relay to turn off the light
       - if:
           condition:
             lambda: 'return (id(power_channel_1).state > ${at_least} || id(power_channel_2).state > ${at_least});'
@@ -205,8 +259,8 @@ switch:
             - switch.toggle: shelly_relay_1
       
   - platform: gpio
+    name: ${device_name}_${mac_address} Relay 1
     id: shelly_relay_1
-    name: $device_name ${channel_1}
     pin: GPIO4
     icon: "mdi:electric-switch"
     restore_mode: RESTORE_DEFAULT_ON
@@ -217,24 +271,30 @@ switch:
     - switch.turn_on: shelly_relay_2
     
   - platform: gpio
+    name: ${device_name}_${mac_address} Relay 2
     id: shelly_relay_2
-    name: $device_name ${channel_2}
     pin: GPIO15
     icon: "mdi:electric-switch"
     restore_mode: RESTORE_DEFAULT_ON
 
 binary_sensor:
   - platform: gpio
+    name: ${device_name}_${mac_address} Input 1
     pin:
       number: GPIO13
-    name: "$device_name ${channel_1} Input"
+    id: switch_1
     # Edge switch
     on_state:
       then:
         - switch.toggle: shelly_relay_1
         
   - platform: gpio
+    name: ${device_name}_${mac_address} Input 2
     pin:
       number: GPIO5
-    name: "$device_name ${channel_2} Input"
+    id: switch_2
     # Switch is detached (input is ignored)
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
