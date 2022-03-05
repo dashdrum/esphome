@@ -34,14 +34,24 @@ sensor:
 
   - !include include/bme280.yaml
 
-    
+  - platform: adc
+    pin: A0
+    filters:
+      - multiply: 100
+    unit_of_measurement: "%"
+    name: $upper_device_name Battery
+    device_class: battery
+    update_interval: 60s
+    expire_after: 30min
+    state_topic: $device_name/battery/state
+
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
     expire_after: 60min
     icon: mdi:wifi
   
-switch:
+button:
   - platform: restart
     name: $upper_device_name Restart
     

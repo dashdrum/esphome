@@ -31,7 +31,7 @@ binary_sensor:
     id: d8_button
     name: $upper_device_name Push
     filters:
-      - delayed_on_off: 10ms
+      - delayed_on_off: 20ms
     
 sensor:
   - platform: wifi_signal

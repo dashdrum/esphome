@@ -1,6 +1,4 @@
 ---
-- platform: restart
-  name: $upper_device_name Restart
 
 - platform: template
   name: $switch_prefix 70

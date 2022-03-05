@@ -7,7 +7,7 @@ manual_ip:
   subnet: 255.255.255.0
 
 # When switching a device from DHCP to manual, uncomment the following line and enter the current IP. Recomment after flashing and reinstall.
-# use_address: 192.168.254.205
+# use_address: 192.168.254.114
 
 # Enable fallback hotspot (captive portal) in case wifi connection fails
 ap:

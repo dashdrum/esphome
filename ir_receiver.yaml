@@ -49,6 +49,6 @@ remote_receiver:
   #     command: 0x48B7
      
   
-switch:
+button:
   - platform: restart
     name: $upper_device_name Restart 

@@ -38,3 +38,7 @@ sensor:
     icon: mdi:wifi
       
 switch: !include include/fujitsu_switches.yaml
+
+button:
+  - platform: restart
+    name: $upper_device_name Restart
