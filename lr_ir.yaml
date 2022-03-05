@@ -34,11 +34,154 @@ sensor:
     update_interval: 60s
     icon: mdi:wifi
     
-remote_transmitter:
-  pin: GPIO12  # D6
-  carrier_duty_percent: 50%
-  id: $device_name
+text_sensor:
+  - platform: mqtt_subscribe
+    name: $upper_device_name TV Power
+    id: lr_tv_state
+    topic: lr_ir/living_room_tv/state
+    icon: mdi:television
+    
+binary_sensor:
+  - platform: template
+    name: $upper_device_name TV State
+    icon: mdi:television
+    lambda: |-
+      if (id(lr_tv_state).state == "on") {
+        return true;
+      } else {
+        return false;
+      }
       
-switch:
-- platform: restart
-  name: $upper_device_name Restart
+script: 
+  - id: code_repeat_block
+    then:
+      - delay: 1s
+      
+remote_receiver:
+  pin:
+    number: GPIO2 # D4
+    inverted: true
+    mode:
+      input: true
+      pullup: true
+  # dump: all
+  on_sony:
+    lambda: |-
+      if (x.data == 0xA90){
+        if ( id(code_repeat_block).is_running() == false){
+          id(code_repeat_block).execute();
+          if (id(lr_tv_state).state == "on") {
+            id(mqtt_client).publish("lr_ir/living_room_tv/state", "off");
+          } else {
+            id(mqtt_client).publish("lr_ir/living_room_tv/state", "on");
+          }
+        }
+      }
+    
+remote_transmitter:
+  pin: GPIO0  # D3
+  carrier_duty_percent: 50%
+  id: trans
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
+    
+  - platform: template
+    name: $upper_device_name Sony TV Power
+    on_press:
+      remote_transmitter.transmit_sony:
+        data: 0xA90
+        nbits: 12
+        repeat:
+          times: 2
+    
+  - platform: template
+    name: $upper_device_name Sony TV Mute
+    on_press:
+      remote_transmitter.transmit_sony:
+        data: 0x290
+        nbits: 12
+        repeat:
+          times: 2
+    
+  - platform: template
+    name: $upper_device_name TV-Cable On
+    on_press:
+        #. TV power on, Cable Menu, Cable power twice
+      - if:
+          condition:
+            # Checks if tv is already on
+            text_sensor.state:
+              id: lr_tv_state
+              state: 'off'
+          then:
+            - remote_transmitter.transmit_sony:
+                data: 0xA90
+                nbits: 12
+                repeat:
+                  times: 2
+            - delay: 300ms
+            # - mqtt.publish:
+            #     topic: lr_ir/living_room_tv/state
+            #     payload: 'on'
+      - remote_transmitter.transmit_raw:
+          code: [ 8989, -4488, 502, -4489, 505, -2225, 505, -2232, 475, -4515, 
+                  476, -4518, 500, -2236, 496, -2227, 506, -2228, 505, -2228, 
+                  505, -2229, 503, -2229, 502, -2231, 502, -2231, 501, -4491, 
+                  500, -4490, 502, -2228, 505]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+      - remote_transmitter.transmit_raw:
+          code: [ 8900,-4300, 600,-2150, 600,-4300, 600,-2100, 600,-4350, 600,-2150, 
+                 600,-2150, 600,-2150, 600,-2100, 600,-2150, 600,-2150, 600,-2150,
+                 600,-2150, 600,-2150, 600,-4300, 600,-4300, 600,-2150, 600]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+      - remote_transmitter.transmit_raw:
+          code: [ 8900,-4300, 600,-2150, 600,-4300, 600,-2100, 600,-4350, 600,-2150, 
+                 600,-2150, 600,-2150, 600,-2100, 600,-2150, 600,-2150, 600,-2150,
+                 600,-2150, 600,-2150, 600,-4300, 600,-4300, 600,-2150, 600]
+          carrier_frequency: 38kHz
+    
+  - platform: template
+    name: $upper_device_name TV-Cable Off
+    on_press:
+        #. TV power on, Cable Menu, Cable power one
+      - if:
+          condition:
+            # Checks if "my_text_sensor" has state "Hello World"
+            text_sensor.state:
+              id: lr_tv_state
+              state: 'on'
+          then:
+            - remote_transmitter.transmit_sony:
+                data: 0xA90
+                nbits: 12
+                repeat:
+                  times: 2
+            - delay: 300ms
+            # - mqtt.publish:
+            #     topic: lr_ir/living_room_tv/state
+            #     payload: 'off'
+      - remote_transmitter.transmit_raw:
+          code: [ 8989, -4488, 502, -4489, 505, -2225, 505, -2232, 475, -4515, 
+                  476, -4518, 500, -2236, 496, -2227, 506, -2228, 505, -2228, 
+                  505, -2229, 503, -2229, 502, -2231, 502, -2231, 501, -4491, 
+                  500, -4490, 502, -2228, 505]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+      - remote_transmitter.transmit_raw:
+          code: [ 8900,-4300, 600,-2150, 600,-4300, 600,-2100, 600,-4350, 600,-2150, 
+                 600,-2150, 600,-2150, 600,-2100, 600,-2150, 600,-2150, 600,-2150,
+                 600,-2150, 600,-2150, 600,-4300, 600,-4300, 600,-2150, 600]
+          carrier_frequency: 38kHz
+      
+  
+  
+  
+  
+  
+  
+  
+  
