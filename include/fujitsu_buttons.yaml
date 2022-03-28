@@ -1,0 +1,79 @@
+---
+
+- platform: template
+  name: $switch_prefix 70
+  on_press:
+    - climate.control:
+        id: $climate_id
+        mode: COOL
+        target_temperature: 70°F
+        fan_mode: AUTO
+        swing_mode: VERTICAL
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+- platform: template
+  name: $switch_prefix 72
+  on_press:
+    - climate.control:
+        id: $climate_id
+        mode: COOL
+        target_temperature: 72°F
+        fan_mode: AUTO
+        swing_mode: VERTICAL
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+- platform: template
+  name: $switch_prefix 64
+  on_press:
+    - climate.control:
+        id: $climate_id
+        mode: COOL
+        target_temperature: 64°F
+        fan_mode: AUTO
+        swing_mode: VERTICAL
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+- platform: template
+  name: $switch_prefix Off
+  on_press:
+    - climate.control:
+        id: $climate_id
+        mode: "OFF"
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+
+- platform: template
+  name: $switch_prefix Powerful
+  on_press:
+    - remote_transmitter.transmit_raw:
+        transmitter_id: $device_name
+        code: [3300,-1650, 450,-450, 450,-450, 450,-1250, 450,-450,
+              450,-1250, 450,-450, 450,-450, 450,-450, 500,-1200,
+              500,-1200, 450,-450, 450,-450, 450,-450, 450,-1250,
+              450,-1250, 450,-450, 450,-450, 450,-450, 450,-450,
+              450,-450, 450,-450, 450,-450, 450,-450, 450,-450, 450,
+              -450, 450,-450, 450,-450, 450,-450, 450,-1250, 450,-450,
+              450,-450, 450,-450, 450,-450, 450,-450, 450,-450, 450,
+              -450, 450,-1250, 450,-450, 450,-450, 450,-450, 450,-1250,
+              450,-450, 450,-450, 450,-1250, 450,-1250, 450,-1250, 450,
+              -450, 450,-450, 450,-450, 450,-1250, 450,-1250, 450,-450,
+              450,-450, 450,-450, 450,-1250, 450,-1250, 450] # Poweful
+        carrier_frequency: 38000
+    - output.turn_on: onboard_led
+    - delay: 250ms
+    - output.turn_off: onboard_led
+
+
+- platform: restart
+  name: $upper_device_name Restart
+
+
+
