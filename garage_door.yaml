@@ -7,7 +7,7 @@ esphome:
   platform: ESP8266
   board: d1_mini
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_iot.yaml
 
 captive_portal:
 
@@ -55,9 +55,16 @@ output:
 
 button:
   - platform: output
+    name: $upper_device_name Short Push
     id: push_button
     output: output1
-    duration: 600ms      
+    duration: 600ms     
+    
+  - platform: output
+    name: $upper_device_name Long Push
+    id: long_push_button
+    output: output1
+    duration: 8.98s   
       
   - platform: restart
     name: $upper_device_name Restart
