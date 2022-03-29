@@ -34,9 +34,9 @@ sensor:
     update_interval: 30min
     icon: mdi:wifi
       
+button: !include include/fujitsu_buttons.yaml
 switch: !include include/fujitsu_switches.yaml
 
-button:
-  - platform: restart
-    name: $upper_device_name Restart
+
+
     
