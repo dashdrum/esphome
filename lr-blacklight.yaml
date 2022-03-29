@@ -1,0 +1,52 @@
+substitutions:
+  device_name: lr_blacklight
+  upper_device_name: LR Blacklight
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+  on_boot:
+    then:
+      - light.turn_on:
+          id: $device_name
+          
+wifi: !include include/wifi_iot.yaml
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+web_server:
+  port: 80
+
+mqtt: !include include/mqtt.yaml
+  
+light:
+  - platform: monochromatic
+    name: "$upper_device_name"
+    id: $device_name
+    output: output_component_black
+    
+output:
+  - platform: esp8266_pwm
+    id: output_component_black
+    pin: D8
+    max_power: 100%
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 30min
+    icon: mdi:wifi
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
