@@ -2,6 +2,7 @@ substitutions:
   device_name: lr_ir
   upper_device_name: Living Room IR
   switch_prefix: IR
+  tv_state_topic: $device_name/living_room_tv/state
 
 esphome:
   name: $device_name
@@ -17,7 +18,7 @@ web_server:
 
 # Enable logging
 logger:
-  level: DEBUG
+  level: INFO
 
 # Enable Home Assistant API
 # api:
@@ -36,26 +37,26 @@ sensor:
     
 text_sensor:
   - platform: mqtt_subscribe
-    name: $upper_device_name TV Power
     id: lr_tv_state
-    topic: lr_ir/living_room_tv/state
+    topic: $tv_state_topic
     icon: mdi:television
     
-binary_sensor:
-  - platform: template
-    name: $upper_device_name TV State
-    icon: mdi:television
-    lambda: |-
-      if (id(lr_tv_state).state == "on") {
-        return true;
-      } else {
-        return false;
-      }
+# binary_sensor:
+#   - platform: template
+#     name: $upper_device_name TV State
+#     icon: mdi:television
+#     lambda: |-
+#       if (id(lr_tv_state).state == "on") {
+#         return true;
+#       } else {
+#         return false;
+#       }
       
 script: 
+  # While this script is running the receiver will ignore any power codes
   - id: code_repeat_block
     then:
-      - delay: 1s
+      - delay: 1.5s
       
 remote_receiver:
   pin:
@@ -122,9 +123,6 @@ button:
                 repeat:
                   times: 2
             - delay: 300ms
-            # - mqtt.publish:
-            #     topic: lr_ir/living_room_tv/state
-            #     payload: 'on'
       - remote_transmitter.transmit_raw:
           code: [ 8989, -4488, 502, -4489, 505, -2225, 505, -2232, 475, -4515, 
                   476, -4518, 500, -2236, 496, -2227, 506, -2228, 505, -2228, 
@@ -150,7 +148,7 @@ button:
         #. TV power on, Cable Menu, Cable power one
       - if:
           condition:
-            # Checks if "my_text_sensor" has state "Hello World"
+            # Only turn off the TV if it is actually on
             text_sensor.state:
               id: lr_tv_state
               state: 'on'
@@ -161,9 +159,6 @@ button:
                 repeat:
                   times: 2
             - delay: 300ms
-            # - mqtt.publish:
-            #     topic: lr_ir/living_room_tv/state
-            #     payload: 'off'
       - remote_transmitter.transmit_raw:
           code: [ 8989, -4488, 502, -4489, 505, -2225, 505, -2232, 475, -4515, 
                   476, -4518, 500, -2236, 496, -2227, 506, -2228, 505, -2228, 

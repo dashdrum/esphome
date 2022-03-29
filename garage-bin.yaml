@@ -9,7 +9,7 @@ esphome:
   platform: ESP8266
   board: d1_mini
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_iot.yaml
 
 mqtt: !include include/mqtt.yaml
 
