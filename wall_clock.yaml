@@ -16,7 +16,7 @@ esphome:
           id: $device_name
           effect: "Clock"
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_iot.yaml
 
 captive_portal:
 
@@ -73,21 +73,23 @@ button:
     
             std::string effects[] = {
                 "Clock",
+                "Color Test",
                 "Clock Backfill",
                 "Clock Backwards",
                 "Clock Basic",
                 "Clock Candy Cane",
                 "Clock Comet",
+                "Clock Flicker",
+                "Clock Fly",
                 "Clock Marquee",
                 "Clock Glitter",
                 "Clock Inverse",
                 "Clock Tourbillon",
                 "Police 3",
                 "Rainbow Spinner",
-                "Color Test",
                 "Color Wipe"
               };
-            int num_effects = 14;
+            int num_effects = 16;
     
             int i = rand() % num_effects;
     
@@ -182,16 +184,16 @@ light:
             static int hour_loc = 0;
             static int min_loc = 0;
             static boolean first_wipe = false;
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,200,0);
-            const ESPColor second_color = ESPColor(0,200,200);
-            const ESPColor wipe_color = ESPColor(255,165,0);
-            const ESPColor paun_wipe_color = ESPColor(179,124,0);
-            const ESPColor half_wipe_color = ESPColor(128,83,0);
-            const ESPColor quart_wipe_color = ESPColor(64,41,0);
-            const ESPColor eighth_wipe_color = ESPColor(32,20,0);
-            const ESPColor indicator_color = ESPColor(110,0,135);
-            const ESPColor minor_indicator_color = ESPColor(65,0,65);
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color wipe_color = Color(255,165,0);
+            const Color paun_wipe_color = Color(179,124,0);
+            const Color half_wipe_color = Color(128,83,0);
+            const Color quart_wipe_color = Color(64,41,0);
+            const Color eighth_wipe_color = Color(32,20,0);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(65,0,65);
             int hour;
             int hour_adj;
             int minute;
@@ -213,12 +215,12 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor(0,0,0);
+            it.all() = Color(0,0,0);
             
             if(first_wipe){
               if(wipe < it.size() - 1){
                 for(int i = 0;i < wipe + 1;i++){
-                  it[i] = ESPColor(0,0,0);
+                  it[i] = Color(0,0,0);
                   if(id(marker_setting) > 1){
                     if(i % (it.size() / 12) == 0){
                       it[i] = minor_indicator_color;
@@ -324,7 +326,7 @@ light:
               if(hour == second || minute == second ){
                 ESP_LOGD("same", "Second hides behind hour or minute");
                 if(blink == 0){
-                  it[second] = ESPColor(255,255,255);
+                  it[second] = Color(255,255,255);
                   blink += 1;
                 } else {
                   blink += 1;
@@ -355,7 +357,7 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
 
             
@@ -363,15 +365,17 @@ light:
           name: Clock Backfill
           update_interval: 33ms
           lambda:
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,200,0);
-            const ESPColor second_color = ESPColor(0,200,200);
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
 
-            ESPColor colors[3];
+            Color colors[3];
             int points[3] = {0,0,0};
 
             static int hour_wipe = 0;
             static int minute_wipe = 0;
+            static int end_match_wipe = 0;
+            static int beg_match_wipe = 0;
             int state = 0;
             int step = 0;
 
@@ -380,8 +384,9 @@ light:
               return;
             }
 
-            int hour = (time.hour % 12) * 5;
             int minute = time.minute;
+            int hour = time.hour;
+            hour = (hour % 12) * 5;
             int second = time.second;
 
             int hour_adj = 5 * minute / 60;
@@ -439,7 +444,7 @@ light:
               ESP_LOGD("Backfill","Fallthru!!!! - Hour %d, Minute %d, Second %d", hour, minute, second);
             }
             
-            it.all() = ESPColor(0,0,0);
+            it.all() = Color(0,0,0);
 
             state = 0;
 
@@ -453,6 +458,40 @@ light:
                 }
               } else {
                 it[i] = colors[state];
+              }
+
+              if(hour == minute && second == 0 && hour != 0 ){
+                if( points[state] == minute ){
+                  int range = hour;
+                  if(range < 0) range = range + 60;
+                  if(range > 23 || range == 0){
+                    step = 2;
+                  } else {
+                    step = 1;
+                  }
+                  if( i > beg_match_wipe && beg_match_wipe <= hour){
+                    it[i] = minute_color;
+                  }
+                }
+              } else {
+                beg_match_wipe = 0;
+              }
+
+              if(hour == minute && second == 59 && hour != 59 ){
+                if( points[state] == hour ){
+                  int range = hour;
+                  if(range < 0) range = range + 60;
+                  if(range > 23 || range == 0){
+                    step = 2;
+                  } else {
+                    step = 1;
+                  }
+                  if( i < end_match_wipe && end_match_wipe <= hour){
+                    it[i] = hour_color;
+                  }
+                }
+              } else {
+                end_match_wipe = 0;
               }
               
               if(second == hour){
@@ -517,20 +556,30 @@ light:
               minute_wipe = (minute_wipe - step);
               if(minute_wipe < 0) minute_wipe += 60;
             }
+
+            if(hour == minute && second == 0){
+              beg_match_wipe = beg_match_wipe + step;
+              if(beg_match_wipe > 59) beg_match_wipe = 0;
+            }
+
+            if(hour == minute && second == 59 && end_match_wipe < hour){
+              end_match_wipe = end_match_wipe + step;
+              if(end_match_wipe > 59) end_match_wipe = 0;
+            }
             
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
             
       - addressable_lambda:
           name: Clock Backwards
           update_interval: 100ms
           lambda:
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,200,0);
-            const ESPColor second_color = ESPColor(0,200,200);
-            const ESPColor indicator_color = ESPColor(110,0,135);
-            const ESPColor minor_indicator_color = ESPColor(65,0,65);
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(65,0,65);
             int hour;
             int hour_adj;
             int minute;
@@ -549,7 +598,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor(0,0,0);
+            it.all() = Color(0,0,0);
             
             for(int i = 0; i < it.size();i++){
               if(id(marker_setting) > 1){
@@ -578,16 +627,16 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
             
       - addressable_lambda:
           name: Clock Basic
           update_interval: 100ms
           lambda:
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,200,0);
-            const ESPColor second_color = ESPColor(0,200,200);
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,145,255);
+            const Color second_color = Color(0,200,200);
             int hour;
             int hour_adj;
             int minute;
@@ -606,7 +655,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor(0,0,0);
+            it.all() = Color(0,0,0);
             
             if(second < 60){
               it[second] = second_color;
@@ -622,18 +671,18 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
             
       - addressable_lambda:
           name: Clock Candy Cane
           update_interval: 100ms
           lambda:
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,200,0);
-            const ESPColor second_color = ESPColor(0,200,200);
-            const ESPColor indicator_color = ESPColor(110,0,135);
-            const ESPColor minor_indicator_color = ESPColor(65,0,65);
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(65,0,65);
             int hour;
             int hour_adj;
             int minute;
@@ -658,14 +707,14 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor(0,0,0);
+            it.all() = Color(0,0,0);
 
             for(int i = 0;i < 60; i++){
               int d = (i + cane_pos) % 60;
               if( i % 15 < cane_width/2){
-                it[d] = ESPColor(128,0,0);
+                it[d] = Color(128,0,0);
               } else {
-                it[d] = ESPColor(128,128,128);
+                it[d] = Color(128,128,128);
               }
             }
             
@@ -699,7 +748,7 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
 
             
@@ -707,11 +756,11 @@ light:
           name: Clock Comet
           update_interval: 250ms
           lambda:
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,200,0);
-            const ESPColor second_color = ESPColor(0,200,200);
-            const ESPColor indicator_color = ESPColor(110,0,135);
-            const ESPColor minor_indicator_color = ESPColor(65,0,65);
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(65,0,65);
             int hour;
             int hour_adj;
             int minute;
@@ -729,7 +778,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor(0,0,0);
+            it.all() = Color(0,0,0);
             
             for(int i = 0; i < it.size();i++){
               if(id(marker_setting) > 1){
@@ -749,11 +798,11 @@ light:
               int i = hour - j;
               if(i < 0) i = 60 + i;
               if( i > 59) i = i - 60;
-              it[i] = ESPColor(hour_color.r * ((10-j) * .10), hour_color.g * ((10-j) * .10), hour_color.b * ((10-j) * .10));
+              it[i] = Color(hour_color.r * ((10-j) * .10), hour_color.g * ((10-j) * .10), hour_color.b * ((10-j) * .10));
             }
 
             for(int j = 0; j < 8; j++){
-              ESPColor j_color = ESPColor(minute_color.r * ((10-j) * .10), minute_color.g * ((10-j) * .10), minute_color.b * ((10-j) * .10));
+              Color j_color = Color(minute_color.r * ((10-j) * .10), minute_color.g * ((10-j) * .10), minute_color.b * ((10-j) * .10));
               int i = minute - j;
               if(i < 0) i = 60 + i;
               if( i > 59) i = i - 60;
@@ -770,7 +819,7 @@ light:
             }
 
             for(int j = 0; j < 8; j++){
-              ESPColor j_color = ESPColor(second_color.r * ((10-j) * .10), second_color.g * ((10-j) * .10), second_color.b * ((10-j) * .10));
+              Color j_color = Color(second_color.r * ((10-j) * .10), second_color.g * ((10-j) * .10), second_color.b * ((10-j) * .10));
               int i = second - j;
               if(i < 0) i = 60 + i;
               if( i > 59) i = i - 60;
@@ -802,18 +851,184 @@ light:
             }
                           
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
             
+      - addressable_lambda:
+          name: Clock Flicker
+          update_interval: 75ms
+          lambda:
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(65,0,65);
+            int hour;
+            int hour_adj;
+            int minute;
+            int second;
+            
+            auto time = id(esptime).now();
+            if (!time.is_valid()) {
+              return;
+            }
+            
+            hour = (time.hour % 12) * 5;
+            minute = time.minute;
+            second = time.second;
+            
+            hour_adj = 5 * minute / 60;
+            hour = hour + hour_adj;
+            
+            it.all() = Color(0,0,0);
+            
+            for(int i = 0; i < it.size();i++){
+              if(id(marker_setting) > 1){
+                if(i % (it.size() / 12) == 0){
+                  it[i] = minor_indicator_color;
+                }
+              }
+              if(id(marker_setting) > 0){
+                if(i % (it.size() / 4) == 0){
+                  it[i] = indicator_color;
+                }
+              }
+            }
+            
+            if(second < 60){
+              it[second] = second_color;
+            }
+            it[minute] = minute_color;
+            it[hour] = hour_color;
+            
+            if(hour == minute && second > 1){
+              if(second % 2 == 1){
+                it[minute] = minute_color;
+                ESP_LOGD("same", "Hour equal minute");
+              }
+            }
+
+            if(rand() % 4 > 0){
+              it.all() = Color(0,0,0);
+            }
+            
+            if(second > 59){
+              it.all() = Color(255,255,255);
+            }
+            
+      - addressable_lambda:
+          name: Clock Fly
+          update_interval: 50ms
+          lambda:
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(65,0,65);
+            int hour;
+            int hour_adj;
+            int minute;
+            int second;
+  
+            static float position;
+            static float destination;
+            static int length;
+            static float direction;
+            static int speed;
+            static float jump;
+            static int state = 0;  
+            static int step;
+            const Color fly_color = Color(255,255,0);
+            const int pause = 4;
+            
+            auto time = id(esptime).now();
+            if (!time.is_valid()) {
+              return;
+            }
+            
+            hour = (time.hour % 12) * 5;
+            minute = time.minute;
+            second = time.second;
+            
+            hour_adj = 5 * minute / 60;
+            hour = hour + hour_adj;
+            
+            it.all() = Color(0,0,0);
+            
+            for(int i = 0; i < it.size();i++){
+              if(id(marker_setting) > 1){
+                if(i % (it.size() / 12) == 0){
+                  it[i] = minor_indicator_color;
+                }
+              }
+              if(id(marker_setting) > 0){
+                if(i % (it.size() / 4) == 0){
+                  it[i] = indicator_color;
+                }
+              }
+            }
+            
+            if(second < 60){
+              it[second] = second_color;
+            }
+            it[minute] = minute_color;
+            it[hour] = hour_color;
+            
+            if(hour == minute && second > 1){
+              if(second % 2 == 1){
+                it[minute] = minute_color;
+                ESP_LOGD("same", "Hour equal minute");
+              }
+            }
+  
+            if(initial_run){
+              position = 0.0;
+              state = 2;
+              srand(time.hour + minute + second);
+            }
+  
+            if(state == 0){
+              state = 1;
+              direction = rand() % 2;
+              if(direction == 0.0) direction = -1.0;
+              length = rand() % 20 + 5;
+              speed = rand() % 10 + 1;
+              jump = float(speed) / 2.5;
+              ESP_LOGD("same", "Position %0.2f, dir %0.2f, length %d, speed %d, jump %0.2f", position, direction, length, speed, jump);
+              step = 0;
+            }
+  
+            if(state == 1){
+              position = position + (jump * direction);
+              if(position < 0) position += 60;
+              if(position > 59) position -= 60;
+              it[int(position)] = fly_color;
+              if(++step >= length){
+                step = 0;
+                state = 2;
+              }
+            }
+  
+            if(state == 2){
+              it[int(position)] = fly_color;
+              if(++step >= pause){
+                state = 0;
+              }
+            }
+            
+            if(second > 59){
+              it.all() = Color(255,255,255);
+            }
+          
       - addressable_lambda:
           name: Clock Glitter
           update_interval: 18ms
           lambda:
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,200,0);
-            const ESPColor second_color = ESPColor(0,200,200);
-            const ESPColor indicator_color = ESPColor(110,0,135);
-            const ESPColor minor_indicator_color = ESPColor(65,0,65);
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(65,0,65);
             int hour;
             int hour_adj;
             int minute;
@@ -832,7 +1047,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor(0,0,0);
+            it.all() = Color(0,0,0);
             
             for(int i = 0; i < it.size();i++){
               if(id(marker_setting) > 1){
@@ -870,16 +1085,16 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
             
       - addressable_lambda:
           name: Clock Inverse
           update_interval: 100ms
           lambda:
-            const ESPColor hour_color = ESPColor(0,0,0);
-            const ESPColor minute_color = ESPColor(0,0,0);
-            const ESPColor second_color = ESPColor(0,0,0);
+            const Color hour_color = Color(0,0,0);
+            const Color minute_color = Color(0,0,0);
+            const Color second_color = Color(0,0,0);
             int hour;
             int hour_adj;
             int minute;
@@ -906,7 +1121,7 @@ light:
             it[hour] = hour_color;
             
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
 
             
@@ -914,11 +1129,11 @@ light:
           name: Clock Marquee
           update_interval: 75ms
           lambda:
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,200,0);
-            const ESPColor second_color = ESPColor(0,200,200);
-            const ESPColor indicator_color = ESPColor(110,0,135);
-            const ESPColor minor_indicator_color = ESPColor(65,0,65);
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(65,0,65);
             int hour;
             int hour_adj;
             int minute;
@@ -938,7 +1153,7 @@ light:
             hour_adj = 5 * minute / 60;
             hour = hour + hour_adj;
             
-            it.all() = ESPColor(0,0,0);
+            it.all() = Color(0,0,0);
             
             for(int i = 0; i < it.size();i++){
               if(id(marker_setting) > 1){
@@ -979,7 +1194,7 @@ light:
             }
             
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
 
             
@@ -987,11 +1202,11 @@ light:
           name: Clock Tourbillon
           update_interval: 33ms
           lambda:
-            const ESPColor hour_color = ESPColor(255,0,0);
-            const ESPColor minute_color = ESPColor(0,200,0);
-            const ESPColor second_color = ESPColor(0,200,200);
-            const ESPColor indicator_color = ESPColor(110,0,135);
-            const ESPColor minor_indicator_color = ESPColor(65,0,65);
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(65,0,65);
             int hour;
             int minute;
             int second;
@@ -1011,7 +1226,7 @@ light:
             minute = 30 - (time.minute / 2);
             second = time.second;
             
-            it.all() = ESPColor(0,0,0);
+            it.all() = Color(0,0,0);
             
             for(int i = 0; i < it.size();i++){
               if(id(marker_setting) > 1){
@@ -1075,11 +1290,11 @@ light:
             if(second % 2 == 1){
               it[0] = second_color;
             } else {
-              it[0] = ESPColor(0,0,0);
+              it[0] = Color(0,0,0);
             }
             
             if(second > 59){
-              it.all() = ESPColor(255,255,255);
+              it.all() = Color(255,255,255);
             }
           
       - strobe:
@@ -1140,12 +1355,12 @@ light:
           lambda:
             static int wipe = 0;
             static int step = 0;
-            ESPColor wipe_color;
+            Color wipe_color;
 
-            if(step == 0) wipe_color = ESPColor(255,0,0);
-            if(step == 1) wipe_color = ESPColor(0,255,0);
-            if(step == 2) wipe_color = ESPColor(0,0,255);
-            if(step == 3) wipe_color = ESPColor(255,255,255);;
+            if(step == 0) wipe_color = Color(255,0,0);
+            if(step == 1) wipe_color = Color(0,255,0);
+            if(step == 2) wipe_color = Color(0,0,255);
+            if(step == 3) wipe_color = Color(255,255,255);;
 
             for(int i = 0; i <= wipe; i++){
               it[i] = wipe_color;
@@ -1187,12 +1402,12 @@ light:
       
             for (int i = 0; i < it.size(); i++) {
               if(color_state == 0){
-                it[i] = ESPColor(255,0,0);
+                it[i] = Color(255,0,0);
               } else {
-                it[i] = ESPColor(0,0,255);
+                it[i] = Color(0,0,255);
               }
               if(cycle == 1 && state < flash_width){
-                it[i] = ESPColor(255,255,255);
+                it[i] = Color(255,255,255);
               }
       
               state += 1;
