@@ -98,108 +98,6 @@ sensor:
       return {};
       
     update_interval: 100ms
-  
-text_sensor:  
-  - platform: template
-    name: "Dryer Sensor"
-    lambda: |-
-    
-      const int DRYER_RUNNING = 0;
-      const int DRYER_COMPLETE = 1;
-      const int DRYER_OFF = 2;
-      const int DOOR_OPEN = 3;
-      const int UNDEFINED = 32767; // High value
-      const int MOTION_NOT_DETECTED = 0;
-      const int MOTION_DETECTED = 1;
-      const int DRYER_CHECK_MAX_LOW = 3;
-      const int DRYER_CHECK_MAX_HIGH = 5;
-      const float DRYER_AX_THRESHOLD = 0.15;  
-      const float DRYER_AY_THRESHOLD = 0.12;  
-      const float DRYER_AZ_THRESHOLD = 1.00;  
-      const float MAX = 100.0;
-      const float MIN = 0.0;
-    
-      float dryer_ax_range, dryer_ay_range, dryer_az_range;
-      int dryer_reading = UNDEFINED;
-      
-      static int dryer_check_max = DRYER_CHECK_MAX_HIGH; //  number of times to check values before determining motion - low when running, otherwise higher
-      static int dryer_state = UNDEFINED;
-      static int last_dryer_state = UNDEFINED;
-      static int dryer_check_count = 0;
-      static int dryer_motion_count = 0;
-      static bool first_time = true;
-      
-       if(!first_time) last_dryer_state = dryer_state;
-       first_time = false;
-      
-      dryer_ax_range = id(dryer_ax_max) - id(dryer_ax_min);
-      dryer_ay_range = id(dryer_ay_max) - id(dryer_ay_min);
-      dryer_az_range = id(dryer_az_max) - id(dryer_az_min);
-      
-      dryer_reading = MOTION_NOT_DETECTED;
-  
-      if ((dryer_ax_range > DRYER_AX_THRESHOLD) 
-           and (dryer_ay_range > DRYER_AY_THRESHOLD) 
-           and (dryer_az_range > DRYER_AZ_THRESHOLD)){
-        dryer_reading = MOTION_DETECTED;
-      }
-      
-      dryer_check_count++;
-      if (dryer_reading == MOTION_DETECTED){
-        dryer_motion_count++;
-      }
-      
-      ESP_LOGD("INFO","Ranges: %.2f %.2f %.2f %d %d", dryer_ax_range, dryer_ay_range, dryer_az_range, dryer_state, dryer_motion_count);
-      
-      if(dryer_check_count >= dryer_check_max){
-        
-        if(id(dryer_door).state == false){
-          if(dryer_motion_count >= (int)(.6*dryer_check_count + 1)){  
-            dryer_state = DRYER_RUNNING;
-            dryer_check_max = DRYER_CHECK_MAX_LOW;
-          }
-        }
-  
-        if(id(dryer_door).state == false && dryer_motion_count <= (int)(.3*dryer_check_count + 1)) { 
-          if (dryer_state == DRYER_RUNNING){
-            dryer_state = DRYER_COMPLETE;
-          } 
-          dryer_check_max = DRYER_CHECK_MAX_HIGH;
-        }
-        
-        if(dryer_state == UNDEFINED) dryer_state = DRYER_OFF;
-
-        dryer_check_count = 0;
-        dryer_motion_count = 0;
-      }
-      
-      id(dryer_ax_min) = MAX;
-      id(dryer_ay_min) = MAX;
-      id(dryer_az_min) = MAX;
-      id(dryer_ax_max) = MIN;
-      id(dryer_ay_max) = MIN;
-      id(dryer_az_max) = MIN;
-        
-      if(id(dryer_door).state == true) {
-        dryer_state = DOOR_OPEN;
-      } else if (dryer_state == DOOR_OPEN){
-        dryer_state = DRYER_OFF;
-      }
-        
-      if(last_dryer_state != dryer_state){
-        if(id(dryer_door).state == true){
-          return {"Door Open"};
-        } else if(dryer_state == DRYER_RUNNING){
-          return {"Running"};
-        } else if(dryer_state == DRYER_COMPLETE){
-          return {"Cycle Complete"};
-        }
-        return {"Idle"};
-      } else {
-        return {};
-      }
-      
-    update_interval: 3s
       
 button:
   - platform: restart
@@ -223,3 +121,95 @@ binary_sensor:
     filters:
       - delayed_on_off: 20ms
       - invert:
+
+  - platform: template
+    name: "Dryer State"
+    device_class: running
+    lambda: |-
+    
+      const int DRYER_RUNNING = 0;
+      const int DRYER_NOT_RUNNING = 1;
+      const int UNDEFINED = 32767; // High value
+      const int MOTION_NOT_DETECTED = 0;
+      const int MOTION_DETECTED = 1;
+      const int DRYER_CHECK_MAX_LOW = 3;
+      const int DRYER_CHECK_MAX_HIGH = 5;
+      const float DRYER_AX_THRESHOLD = 0.15;  
+      const float DRYER_AY_THRESHOLD = 0.12;  
+      const float DRYER_AZ_THRESHOLD = 1.00;  
+      const float MAX = 100.0;
+      const float MIN = 0.0;
+    
+      float dryer_ax_range, dryer_ay_range, dryer_az_range;
+      int dryer_reading = UNDEFINED;
+      
+      static int dryer_check_max = DRYER_CHECK_MAX_HIGH; //  number of times to check values before determining motion - low when running, otherwise higher
+      static int dryer_state = UNDEFINED;
+      static int last_dryer_state = UNDEFINED;
+      static int dryer_check_count = 0;
+      static int dryer_motion_count = 0;
+      static bool first_time = true;
+      static long last_report = millis();
+      
+      if(last_report > millis()) last_report = millis();
+      
+      if(millis() - last_report > 3000){
+      
+        last_report = millis();
+      
+        if(!first_time) last_dryer_state = dryer_state;
+        first_time = false;
+        
+        dryer_ax_range = id(dryer_ax_max) - id(dryer_ax_min);
+        dryer_ay_range = id(dryer_ay_max) - id(dryer_ay_min);
+        dryer_az_range = id(dryer_az_max) - id(dryer_az_min);
+        
+        dryer_reading = MOTION_NOT_DETECTED;
+    
+        if ((dryer_ax_range > DRYER_AX_THRESHOLD) 
+             and (dryer_ay_range > DRYER_AY_THRESHOLD) 
+             and (dryer_az_range > DRYER_AZ_THRESHOLD)){
+          dryer_reading = MOTION_DETECTED;
+        }
+        
+        dryer_check_count++;
+        if (dryer_reading == MOTION_DETECTED){
+          dryer_motion_count++;
+        }
+        
+        ESP_LOGD("INFO","Ranges: %.2f %.2f %.2f %d %d", dryer_ax_range, dryer_ay_range, dryer_az_range, dryer_state, dryer_motion_count);
+        
+        if(dryer_check_count >= dryer_check_max){
+          
+          if(dryer_motion_count >= (int)(.6*dryer_check_count + 1)){  
+            dryer_state = DRYER_RUNNING;
+            dryer_check_max = DRYER_CHECK_MAX_LOW;
+          }
+    
+          if(dryer_motion_count <= (int)(.3*dryer_check_count + 1)) { 
+            dryer_state = DRYER_NOT_RUNNING;
+            dryer_check_max = DRYER_CHECK_MAX_HIGH;
+          }
+  
+          dryer_check_count = 0;
+          dryer_motion_count = 0;
+        }
+        
+        id(dryer_ax_min) = MAX;
+        id(dryer_ay_min) = MAX;
+        id(dryer_az_min) = MAX;
+        id(dryer_ax_max) = MIN;
+        id(dryer_ay_max) = MIN;
+        id(dryer_az_max) = MIN;
+          
+        if(last_dryer_state != dryer_state){
+          last_dryer_state = dryer_state;
+          if(dryer_state == DRYER_RUNNING){
+            return true;
+          } 
+          if(dryer_state == DRYER_NOT_RUNNING){
+            return false;
+          }
+        }
+      }
+      return {};
