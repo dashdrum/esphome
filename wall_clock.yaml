@@ -494,7 +494,7 @@ light:
                 end_match_wipe = 0;
               }
               
-              if(second == hour){
+              if(second == hour && second != minute){
                 if( points[state] == hour ){
                   int range = hour - minute;
                   if(range < 0) range = range + 60;
