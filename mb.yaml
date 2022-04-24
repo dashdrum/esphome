@@ -1,14 +1,14 @@
 substitutions:
   device_name: mb
   upper_device_name: Master Bedroom
-  ip_address: 192.168.254.204
+  ip_address: 192.168.37.204
 
 esphome:
   name: $device_name
   platform: ESP8266
   board: d1_mini
 
-wifi: !include include/wifi_manual.yaml
+wifi: !include include/wifi_iot_manual.yaml
 
 captive_portal:
 

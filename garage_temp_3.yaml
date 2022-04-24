@@ -1,14 +1,14 @@
 substitutions:
   device_name: garage_temp_3
   upper_device_name: Garage Temp 3
-  ip_address: 192.168.254.211
+  ip_address: 192.168.37.211
 
 esphome:
   name: $device_name
   platform: ESP8266
   board: d1_mini
 
-wifi: !include include/wifi_manual.yaml
+wifi: !include include/wifi_iot_manual.yaml
 
 captive_portal:
 
