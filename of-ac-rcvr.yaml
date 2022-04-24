@@ -13,7 +13,7 @@ logger:
 
 ota:
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_iot.yaml
 
 captive_portal:
 
