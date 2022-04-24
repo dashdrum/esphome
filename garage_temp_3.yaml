@@ -37,7 +37,7 @@ sensor:
   - platform: adc
     pin: A0
     filters:
-      - multiply: 100
+      - multiply: 135.059248359741
     unit_of_measurement: "%"
     name: $upper_device_name Battery
     device_class: battery

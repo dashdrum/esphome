@@ -34,7 +34,12 @@ sensor:
   - platform: adc
     pin: A0
     filters:
-      - multiply: 100
+      - multiply: 130.446125750065
+      - lambda: >-
+          if (x > 100){
+            return 100;
+          }
+          return x;
     unit_of_measurement: "%"
     name: $upper_device_name Battery
     device_class: battery
