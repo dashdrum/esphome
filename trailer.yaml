@@ -51,6 +51,7 @@ sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
     update_interval: 60s
+    expire_after: 60min
     state_topic: $device_name/sensor/wifi_signal/state
     
   - platform: ruuvitag
@@ -76,30 +77,30 @@ sensor:
     pressure:
       name: $upper_device_name Fridge Pressure
       expire_after: 60min
-    acceleration:
-      name: $upper_device_name Fridge Acceleration
-      expire_after: 60min
-    acceleration_x:
-      name: $upper_device_name Fridge Acceleration X
-      expire_after: 60min
-    acceleration_y:
-      name: $upper_device_name Fridge Acceleration Y
-      expire_after: 60min
-    acceleration_z:
-      name: $upper_device_name Fridge Acceleration Z
-      expire_after: 60min
-    battery_voltage:
-      name: $upper_device_name Fridge Battery Voltage
-      expire_after: 60min
+    # acceleration:
+    #   name: $upper_device_name Fridge Acceleration
+    #   expire_after: 60min
+    # acceleration_x:
+    #   name: $upper_device_name Fridge Acceleration X
+    #   expire_after: 60min
+    # acceleration_y:
+    #   name: $upper_device_name Fridge Acceleration Y
+    #   expire_after: 60min
+    # acceleration_z:
+    #   name: $upper_device_name Fridge Acceleration Z
+    #   expire_after: 60min
+    # battery_voltage:
+    #   name: $upper_device_name Fridge Battery Voltage
+    #   expire_after: 60min
     tx_power:
       name: $upper_device_name Fridge TX Power
       expire_after: 60min
-    movement_counter:
-      name: $upper_device_name Fridge Movement Counter
-      expire_after: 60min
-    measurement_sequence_number:
-      name: $upper_device_name Fridge Measurement Sequence Number
-      expire_after: 60min
+    # movement_counter:
+    #   name: $upper_device_name Fridge Movement Counter
+    #   expire_after: 60min
+    # measurement_sequence_number:
+    #   name: $upper_device_name Fridge Measurement Sequence Number
+    #   expire_after: 60min
     
 deep_sleep: 
   run_duration: 120s  ## this is a long duration, trying to pickup the Ruuvi BLE beacon
