@@ -40,7 +40,7 @@ sensor:
   - platform: adc
     pin: A0
     filters:
-      - multiply: 90.909    ## Connected to 5v external power supply - always reports 100%
+      - lambda: return 100;    ## Connected to 5v external power supply - always reports 100%
     unit_of_measurement: "%"
     name: $upper_device_name Battery
     device_class: battery
@@ -71,12 +71,12 @@ sensor:
                 id(deep_sleep_1).begin_sleep();
               }
     # I certainly don't need all of these other attributes, but they're fun!!
-    humidity:
-      name: $upper_device_name Fridge Humidity
-      expire_after: 60min
-    pressure:
-      name: $upper_device_name Fridge Pressure
-      expire_after: 60min
+    # humidity:
+    #   name: $upper_device_name Fridge Humidity
+    #   expire_after: 60min
+    # pressure:
+    #   name: $upper_device_name Fridge Pressure
+    #   expire_after: 60min
     # acceleration:
     #   name: $upper_device_name Fridge Acceleration
     #   expire_after: 60min
@@ -92,9 +92,9 @@ sensor:
     # battery_voltage:
     #   name: $upper_device_name Fridge Battery Voltage
     #   expire_after: 60min
-    tx_power:
-      name: $upper_device_name Fridge TX Power
-      expire_after: 60min
+    # tx_power:
+    #   name: $upper_device_name Fridge TX Power
+    #   expire_after: 60min
     # movement_counter:
     #   name: $upper_device_name Fridge Movement Counter
     #   expire_after: 60min

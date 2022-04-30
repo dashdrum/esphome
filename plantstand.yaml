@@ -34,7 +34,7 @@ sensor:
   - platform: adc
     pin: A0
     filters:
-      - multiply: 130.446125750065
+      - multiply: 126.105740765398
       - lambda: >-
           if (x > 100){
             return 100;
