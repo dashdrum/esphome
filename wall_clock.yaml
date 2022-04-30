@@ -5,8 +5,8 @@ substitutions:
 esp8266:
   board: d1_mini
   restore_from_flash: yes
-  framework:
-    version: 2.7.4
+  # framework:
+  #   version: 2.7.4
 
 esphome:
   name: $device_name
@@ -73,7 +73,6 @@ button:
     
             std::string effects[] = {
                 "Clock",
-                "Color Test",
                 "Clock Backfill",
                 "Clock Backwards",
                 "Clock Basic",
@@ -87,6 +86,7 @@ button:
                 "Clock Tourbillon",
                 "Police 3",
                 "Rainbow Spinner",
+                "Color Test",
                 "Color Wipe"
               };
             int num_effects = 16;
@@ -94,7 +94,6 @@ button:
             int i = rand() % num_effects;
     
             return effects[i];
-          # effect: "{{ state_attr(''light.wall_clock'',''effect_list'') | random }}"
             
 binary_sensor:
   - platform: gpio
@@ -147,11 +146,19 @@ time:
       - 1.pool.ntp.org
     
 light:
-  - platform: fastled_clockless
-    chipset: WS2811
+  # - platform: fastled_clockless
+  #   chipset: WS2811
+  #   pin: GPIO5
+  #   num_leds: 60
+  #   rgb_order: GRB
+  #   id: led_circle
+  #   internal: true
+  
+  - platform: neopixelbus
+    type: GRB
+    variant: WS2811
     pin: GPIO5
     num_leds: 60
-    rgb_order: GRB
     id: led_circle
     internal: true
     
