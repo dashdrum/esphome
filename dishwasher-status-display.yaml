@@ -1,0 +1,148 @@
+substitutions:
+  device_name: dishwasher-display
+  upper_device_name: Dishwasher Display
+
+esphome:
+  name: $device_name
+  on_boot:
+    then:
+      - switch.turn_on: backlight
+
+esp32:
+  board: featheresp32
+
+wifi: !include include/wifi_iot.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+  include_internal: true
+
+# Enable logging
+logger:
+  level: WARN
+
+# Enable Home Assistant API
+# api:
+
+mqtt: !include include/mqtt.yaml
+
+ota:
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: $upper_device_name Button 1
+    id: button_input_0
+    on_press:
+      then:
+        - switch.toggle: backlight
+  - platform: gpio
+    pin:
+      number: GPIO35
+      inverted: true
+    name: $upper_device_name Button 2
+    id: button_input_1
+    on_press:
+      then:
+        - display.page.show_next: screen
+        - component.update: screen
+
+# We can still control the backlight independently
+switch:
+  - platform: gpio
+    pin: GPIO4
+    name: $upper_device_name Backlight
+    id: backlight
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 30min
+    icon: mdi:wifi
+    
+  - platform: mqtt_subscribe
+    id: dw_power
+    topic: hass/dishwasher/power
+    
+text_sensor:
+  - platform: mqtt_subscribe
+    id: dw_status
+    topic: hass/dishwasher/status
+    
+spi:
+  clk_pin: GPIO18
+  mosi_pin: GPIO19
+
+display:
+  - platform: st7789v
+    backlight_pin: GPIO4
+    cs_pin: GPIO5
+    dc_pin: GPIO16
+    reset_pin: GPIO23
+    rotation: 90
+    id: screen
+    pages:
+      - id: status_page
+        lambda: |-
+          Color this_color;
+          const char* this_state = id(dw_status).state.c_str();
+          
+          if(strcmp(this_state,"Clean") == 0) this_color = Color(0,255,0);
+          if(strcmp(this_state,"Dirty") == 0) this_color = Color(255,0,0);
+          if(strcmp(this_state,"Empty") == 0) this_color = Color(0,0,255);
+          if(strcmp(this_state,"Washing") == 0) this_color = Color(255,53,184);
+          if(strcmp(this_state,"Drying") == 0) this_color = Color(255,102,0);
+          
+          it.printf(3,  0, id(font3), "The dishwasher is:");
+          it.printf(3, 40, id(font2), this_color, "%s", this_state);
+          
+      - id: power_page
+        lambda: |-
+          it.printf(3,  0, id(font1), "Dishwasher power use:");
+          it.printf(10, 40, id(font2), Color(255,255,0) , "%.1f W", id(dw_power).state);
+      
+font:
+  - file: 'fonts/arial.ttf'
+    id: font1
+    size: 20
+
+  - file: 'fonts/arial.ttf'
+    id: font2
+    size: 60
+
+  - file: 'fonts/arial.ttf'
+    id: font3
+    size: 25
+    
+color:
+  - id: my_red
+    red: 100%
+    green: 0%
+    blue: 0%
+  - id: my_yellow
+    red: 100%
+    green: 100%
+    blue: 0%
+  - id: my_green
+    red: 0%
+    green: 100%
+    blue: 0%
+  - id: my_blue
+    red: 0%
+    green: 0%
+    blue: 100%
+  - id: my_gray
+    red: 50%
+    green: 50%
+    blue: 50%
