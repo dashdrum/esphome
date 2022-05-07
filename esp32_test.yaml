@@ -9,7 +9,7 @@ esphome:
   # board: wemos_d1_mini32
   board: esp32dev
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_iot.yaml
 
 captive_portal:
 
@@ -27,7 +27,7 @@ ota:
 
 mqtt: !include include/mqtt.yaml
       
-switch:
+button:
   - platform: restart
     name: $upper_device_name Restart
 
@@ -119,7 +119,14 @@ sensor:
     characteristic_uuid: '2A28'
     filters:
       - filter_out: nan
-    
+      
+  - platform: ble_client
+    ble_client_id: soma_shade
+    name: "Soma 1890-1525"
+    service_uuid: '00001890-B87F-490C-92CB-11BA5EA5167C'
+    characteristic_uuid: '00001525-B87F-490C-92CB-11BA5EA5167C'
+    filters:
+      - filter_out: nan
   
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal

@@ -4,10 +4,10 @@ substitutions:
 
 esphome:
   name: $device_name
-  platform: ESP32
-  board: esp32doit-devkit-v1
+  platform: ESP8266
+  board: nodemcu
 
-wifi: !include include/wifi.yaml
+wifi: !include include/wifi_iot.yaml
 
 captive_portal:
 
@@ -23,51 +23,41 @@ logger:
 
 ota:
 
-mqtt: 
-  broker: !secret mqtt_broker
-  username: !secret mqtt_username
-  password: !secret mqtt_password
-  # Needed when using deep sleep mode
-  birth_message:
-    topic: $device_name/birthdisable
-    payload: disable
-  will_message:
-    topic: $device_name/willdisable
-    payload: disable
+mqtt: !include include/mqtt.yaml
       
 button:
   - platform: restart
     name: $upper_device_name Restart
       
-switch:
-  - platform: template
-    name: RV Light
-    turn_on_action:
-      - remote_transmitter.transmit_rc_switch_raw:
-          transmitter_id: transmitter
-          code: '1100011000100101011001000'
-          protocol: 1  
-          # repeat: 3
+# switch:
+#   - platform: template
+#     name: RV Light
+#     turn_on_action:
+#       - remote_transmitter.transmit_rc_switch_raw:
+#           transmitter_id: transmitter
+#           code: '1100011000100101011001000'
+#           protocol: 1  
+#           # repeat: 3
 
 remote_receiver:
   id: receiver
   pin: 
-    number: GPIO12
-    # inverted: true
-  dump: rc_switch
+    number: GPIO16
+    inverted: true
+  dump: all
   # Settings to optimize recognition of RF devices
-  tolerance: 50%
-  filter: 250us
-  idle: 4ms
-  buffer_size: 4kb
+  # tolerance: 50%
+  # filter: 250us
+  # idle: 4ms
+  # buffer_size: 4kb
   
   #Received RCSwitch Raw: protocol=1 data='110001100010010101100100'
   
-remote_transmitter:
-  id: transmitter
-  pin: GPIO13
-  # RF uses a 100% carrier signal
-  carrier_duty_percent: 100%
+# remote_transmitter:
+#   id: transmitter
+#   pin: GPIO13
+#   # RF uses a 100% carrier signal
+#   carrier_duty_percent: 100%
   
  
   
