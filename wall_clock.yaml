@@ -36,6 +36,7 @@ mqtt:
   broker: !secret mqtt_broker
   username: !secret mqtt_username
   password: !secret mqtt_password
+  discovery: false
   birth_message:
     topic: $device_name/availability
     payload: online
