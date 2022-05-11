@@ -9,7 +9,7 @@ esphome:
 
 # Enable logging
 logger:
-  level: INFO
+  level: DEBUG
 
 ota:
 
@@ -23,7 +23,7 @@ remote_receiver:
   pin: 
     number: GPIO2
     inverted: True
-  # dump: all
+  dump: nec
   id: recvr1
   
 binary_sensor:
@@ -31,64 +31,64 @@ binary_sensor:
     receiver_id: recvr1
     name: "Office AC Power Button"
     nec:
-      address: 0x80FF
-      command: 0x48B7
+      address: 0xFF01
+      command: 0xED12
       
   - platform: remote_receiver
     receiver_id: recvr1
     name: "Office AC Temp Plus"
     nec:
-      address: 0x80FF
-      command: 0x58A7
+      address: 0xFF01
+      command: 0xE51A
       
   - platform: remote_receiver
     receiver_id: recvr1
     name: "Office AC Temp Minus"
     nec:
-      address: 0x80FF
-      command: 0xC837
+      address: 0xFF01
+      command: 0xEC13
       
   - platform: remote_receiver
     receiver_id: recvr1
     name: "Office AC Eco"
     nec:
-      address: 0x80FF
+      address: 0xFF01
       command: 0xF00F
       
   - platform: remote_receiver
     receiver_id: recvr1
     name: "Office AC Display"
     nec:
-      address: 0x80FF
-      command: 0x6699
+      address: 0xFF01
+      command: 0x9966
       
   - platform: remote_receiver
     receiver_id: recvr1
     name: "Office AC Fan"
     nec:
-      address: 0x80FF
-      command: 0x708F
+      address: 0xFF01
+      command: 0xF10E
       
   - platform: remote_receiver
     receiver_id: recvr1
     name: "Office AC Mode"
     nec:
-      address: 0x80FF
-      command: 0x40BF
+      address: 0xFF01
+      command: 0xFD02
       
   - platform: remote_receiver
     receiver_id: recvr1
     name: "Office AC Timer"
     nec:
-      address: 0x80FF
-      command: 0xD827
+      address: 0xFF01
+      command: 0xE41B
       
   - platform: remote_receiver
     receiver_id: recvr1
     name: "Office AC Sleep"
     nec:
-      address: 0x80FF
-      command: 0x50AF
+      address: 0xFF01
+      command: 0xF50A
       
 button:
   - platform: restart
