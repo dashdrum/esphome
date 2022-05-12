@@ -502,7 +502,7 @@ light:
                 end_match_wipe = 0;
               }
               
-              if(second == hour && second != minute){
+              if(second == hour && (second != 0 || minute != 0)){
                 if( points[state] == hour ){
                   int range = hour - minute;
                   if(range < 0) range = range + 60;
@@ -643,8 +643,8 @@ light:
           update_interval: 100ms
           lambda:
             const Color hour_color = Color(255,0,0);
-            const Color minute_color = Color(0,145,255);
-            const Color second_color = Color(0,200,200);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
             int hour;
             int hour_adj;
             int minute;
