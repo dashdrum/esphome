@@ -1,0 +1,65 @@
+substitutions:
+  device_name: flespi-test
+  upper_device_name: Flespi Test
+  ip_address: 192.168.37.220
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  networks:
+  - ssid: $gentryrv_ssid
+    password: $gentryrv_password
+  - ssid:  !secret wifi_iot_ssid
+    password: !secret wifi_iot_password
+    manual_ip:
+      static_ip: $ip_address
+      gateway: 192.168.37.1
+      subnet: 255.255.255.0
+      dns1: 8.8.8.8
+      dns2: 1.1.1.1
+      
+# Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: $upper_device_name
+    password: !secret hotspot_password
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: DEBUG
+
+web_server:
+  port: 80
+
+# mqtt: 
+mqtt:
+  id: mqtt_client
+  broker: !secret flespi_broker
+  port: !secret flespi_port
+  username: !secret flespi_token
+  birth_message:
+    topic: $device_name/availability
+    payload: online
+  will_message:
+    topic: $device_name/availability
+    payload: offline
+    
+# Enable Home Assistant API
+# api:
+
+ota:
+  id: my_ota
+   
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 60s
+    icon: mdi:wifi
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart 

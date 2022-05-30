@@ -8,7 +8,21 @@ esphome:
   platform: ESP32
   board: wemos_d1_mini32
 
-wifi: !include include/wifi_iot_manual.yaml
+wifi: 
+  networks:
+  - ssid: $gentryrv_ssid
+    password: $gentryrv_password
+  - ssid:  !secret wifi_iot_ssid
+    password: !secret wifi_iot_password
+    manual_ip:
+      static_ip: $ip_address
+      gateway: 192.168.37.1
+      subnet: 255.255.255.0
+      
+# Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: $upper_device_name
+    password: !secret hotspot_password
 
 captive_portal:
 
@@ -35,7 +49,7 @@ esp32_ble_tracker:
 
 sensor:
 
-  - !include include/sht3xd-45.yaml
+  # - !include include/sht3xd-45.yaml
 
   - platform: adc
     pin: A0
@@ -71,9 +85,9 @@ sensor:
                 id(deep_sleep_1).begin_sleep();
               }
     # I certainly don't need all of these other attributes, but they're fun!!
-    # humidity:
-    #   name: $upper_device_name Fridge Humidity
-    #   expire_after: 60min
+    humidity:
+      name: $upper_device_name Fridge Humidity
+      expire_after: 60min
     # pressure:
     #   name: $upper_device_name Fridge Pressure
     #   expire_after: 60min
@@ -89,9 +103,9 @@ sensor:
     # acceleration_z:
     #   name: $upper_device_name Fridge Acceleration Z
     #   expire_after: 60min
-    # battery_voltage:
-    #   name: $upper_device_name Fridge Battery Voltage
-    #   expire_after: 60min
+    battery_voltage:
+      name: $upper_device_name Fridge Battery Voltage
+      expire_after: 60min
     # tx_power:
     #   name: $upper_device_name Fridge TX Power
     #   expire_after: 60min
@@ -103,7 +117,7 @@ sensor:
     #   expire_after: 60min
     
 deep_sleep: 
-  run_duration: 120s  ## this is a long duration, trying to pickup the Ruuvi BLE beacon
+  run_duration: 180s  ## this is a long duration, trying to pickup the Ruuvi BLE beacon
   sleep_duration: 15min
   id: deep_sleep_1
       
