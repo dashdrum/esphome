@@ -8,7 +8,7 @@ esphome:
   platform: ESP32
   board: wemos_d1_mini32
 
-wifi: 
+wifi:
   networks:
   - ssid: $gentryrv_ssid
     password: $gentryrv_password
@@ -18,6 +18,8 @@ wifi:
       static_ip: $ip_address
       gateway: 192.168.37.1
       subnet: 255.255.255.0
+      dns1: 8.8.8.8
+      dns2: 1.1.1.1
       
 # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
@@ -35,7 +37,18 @@ logger:
 
 # ota: ## No OTA - memory is tight
 
-mqtt: !include include/mqtt_deep_sleep.yaml
+# mqtt: 
+mqtt:
+  id: mqtt_client
+  broker: !secret flespi_broker
+  port: !secret flespi_port
+  username: !secret flespi_token
+  birth_message:
+    topic: $device_name/birthdisable
+    payload: disable
+  will_message:
+    topic: $device_name/willdisable
+    payload: disable
 
 globals:
   - id: ruuvi_count
@@ -49,7 +62,7 @@ esp32_ble_tracker:
 
 sensor:
 
-  # - !include include/sht3xd-45.yaml
+  - !include include/sht3xd-45.yaml
 
   - platform: adc
     pin: A0
