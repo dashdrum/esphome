@@ -1,15 +1,11 @@
 substitutions:
   device_name: wall_clock
   upper_device_name: Wall Clock
-  
-esp8266:
-  board: d1_mini
-  restore_from_flash: yes
-  # framework:
-  #   version: 2.7.4
 
 esphome:
   name: $device_name
+  platform: ESP32
+  board: wemos_d1_mini32
   on_boot:
     then:
       - light.turn_on:
@@ -81,16 +77,17 @@ button:
                 "Clock Comet",
                 "Clock Flicker",
                 "Clock Fly",
-                "Clock Marquee",
                 "Clock Glitter",
+                "Clock Half",
                 "Clock Inverse",
+                "Clock Marquee",
                 "Clock Tourbillon",
                 "Police 3",
                 "Rainbow Spinner",
                 "Color Test",
                 "Color Wipe"
               };
-            int num_effects = 16;
+            int num_effects = 17;
     
             int i = rand() % num_effects;
     
@@ -158,7 +155,7 @@ light:
   - platform: neopixelbus
     type: GRB
     variant: WS2811
-    pin: GPIO5
+    pin: D1
     num_leds: 60
     id: led_circle
     internal: true
@@ -201,7 +198,7 @@ light:
             const Color quart_wipe_color = Color(64,41,0);
             const Color eighth_wipe_color = Color(32,20,0);
             const Color indicator_color = Color(110,0,135);
-            const Color minor_indicator_color = Color(65,0,65);
+            const Color minor_indicator_color = Color(85,0,85);
             int hour;
             int hour_adj;
             int minute;
@@ -587,7 +584,7 @@ light:
             const Color minute_color = Color(0,200,0);
             const Color second_color = Color(0,145,255);
             const Color indicator_color = Color(110,0,135);
-            const Color minor_indicator_color = Color(65,0,65);
+            const Color minor_indicator_color = Color(85,0,85);
             int hour;
             int hour_adj;
             int minute;
@@ -690,7 +687,7 @@ light:
             const Color minute_color = Color(0,200,0);
             const Color second_color = Color(0,145,255);
             const Color indicator_color = Color(110,0,135);
-            const Color minor_indicator_color = Color(65,0,65);
+            const Color minor_indicator_color = Color(85,0,85);
             int hour;
             int hour_adj;
             int minute;
@@ -768,7 +765,7 @@ light:
             const Color minute_color = Color(0,200,0);
             const Color second_color = Color(0,145,255);
             const Color indicator_color = Color(110,0,135);
-            const Color minor_indicator_color = Color(65,0,65);
+            const Color minor_indicator_color = Color(85,0,85);
             int hour;
             int hour_adj;
             int minute;
@@ -870,7 +867,7 @@ light:
             const Color minute_color = Color(0,200,0);
             const Color second_color = Color(0,145,255);
             const Color indicator_color = Color(110,0,135);
-            const Color minor_indicator_color = Color(65,0,65);
+            const Color minor_indicator_color = Color(85,0,85);
             int hour;
             int hour_adj;
             int minute;
@@ -932,7 +929,7 @@ light:
             const Color minute_color = Color(0,200,0);
             const Color second_color = Color(0,145,255);
             const Color indicator_color = Color(110,0,135);
-            const Color minor_indicator_color = Color(65,0,65);
+            const Color minor_indicator_color = Color(85,0,85);
             int hour;
             int hour_adj;
             int minute;
@@ -1036,7 +1033,7 @@ light:
             const Color minute_color = Color(0,200,0);
             const Color second_color = Color(0,145,255);
             const Color indicator_color = Color(110,0,135);
-            const Color minor_indicator_color = Color(65,0,65);
+            const Color minor_indicator_color = Color(85,0,85);
             int hour;
             int hour_adj;
             int minute;
@@ -1131,6 +1128,52 @@ light:
             if(second > 59){
               it.all() = Color(255,255,255);
             }
+            
+      - addressable_lambda:
+          name: Clock Half
+          update_interval: 100ms
+          lambda:
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,255,0);
+            const Color second_color = Color(0,145,255);
+            const Color background_color = Color(200,200,0);
+            int hour;
+            int hour_adj;
+            int minute;
+            int second;
+            
+            auto time = id(esptime).now();
+            if (!time.is_valid()) {
+              return;
+            }
+            
+            hour = (time.hour % 12) * 5;
+            minute = time.minute;
+            second = time.second;
+            
+            hour_adj = 5 * minute / 60;
+            hour = hour + hour_adj;
+            
+            it.all() = background_color;
+            
+            for(int i = 0; i < 30; i++){
+              int j = second - i;
+              if(j>59) j -= 60;
+              it[j] = second_color;
+            }
+            it[minute] = minute_color;
+            it[hour] = hour_color;
+              
+            if(hour == minute && second > 1){
+              if(second % 2 == 1){
+                it[minute] = minute_color;
+                ESP_LOGD("same", "Hour equal minute");
+              }
+            }
+            
+            if(second > 59){
+              it.all() = Color(255,255,255);
+            }
 
             
       - addressable_lambda:
@@ -1141,7 +1184,7 @@ light:
             const Color minute_color = Color(0,200,0);
             const Color second_color = Color(0,145,255);
             const Color indicator_color = Color(110,0,135);
-            const Color minor_indicator_color = Color(65,0,65);
+            const Color minor_indicator_color = Color(85,0,85);
             int hour;
             int hour_adj;
             int minute;
@@ -1214,7 +1257,7 @@ light:
             const Color minute_color = Color(0,200,0);
             const Color second_color = Color(0,145,255);
             const Color indicator_color = Color(110,0,135);
-            const Color minor_indicator_color = Color(65,0,65);
+            const Color minor_indicator_color = Color(85,0,85);
             int hour;
             int minute;
             int second;
