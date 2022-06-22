@@ -10,8 +10,8 @@ esphome:
 
 wifi:
   networks:
-  - ssid: $gentryrv_ssid
-    password: $gentryrv_password
+  - ssid: !secret rv_ssid
+    password: !secret rv_password
   - ssid:  !secret wifi_iot_ssid
     password: !secret wifi_iot_password
     manual_ip:
