@@ -1,0 +1,20 @@
+---
+platform: bmp280
+temperature:
+  name: $upper_device_name Temperature
+  id: bmp280_temperature
+  oversampling: 16x
+  expire_after: 30min
+  accuracy_decimals: 2
+  device_class: "temperature"
+  state_topic: $device_name/temperature/state
+pressure:
+  name: $upper_device_name Pressure
+  id: bmp280_pressure
+  oversampling: 16x
+  expire_after: 30min
+  unit_of_measurement: "mbar"
+  accuracy_decimals: 2
+  state_topic: $device_name/pressure/state
+address: 0x76
+update_interval: 60s
