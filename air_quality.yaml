@@ -16,7 +16,8 @@ web_server:
 
 # Enable logging
 logger:
-  level: WARN
+  level: ERROR
+#   baud_rate: 0
 
 # Enable Home Assistant API
 # api:
@@ -32,18 +33,20 @@ button:
 i2c:
 
 # uart:
-#   rx_pin: GPIO23
+#   rx_pin: GPIO3
 #   baud_rate: 9600
+#   id: uart_1
     
 sensor:
-  # - platform: pmsx003
-  #   type: PMSX003
-  #   pm_1_0:
-  #     name: "Particulate Matter <1.0µm Concentration"
-  #   pm_2_5:
-  #     name: "Particulate Matter <2.5µm Concentration"
-  #   pm_10_0:
-  #     name: "Particulate Matter <10.0µm Concentration"
+#   - platform: pmsx003
+#     type: PMSX003
+#     uart_id: uart_1
+#     pm_1_0:
+#       name: "Particulate Matter <1.0µm Concentration"
+#     pm_2_5:
+#       name: "Particulate Matter <2.5µm Concentration"
+#     pm_10_0:
+#       name: "Particulate Matter <10.0µm Concentration"
     
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
