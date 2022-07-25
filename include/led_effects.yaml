@@ -105,9 +105,9 @@
       }
 
       if(state < width/2){
-        it[it.size() - 1] = ESPColor(248,24,148);
+        it[it.size() - 1] = Color(248,24,148);
       } else {
-        it[it.size() - 1] = ESPColor(148,0,211);
+        it[it.size() - 1] = Color(148,0,211);
       }
 
       state += 1;
@@ -119,20 +119,27 @@
     update_interval: 100ms
     lambda:
       static int state = 0;
-      const int width = 16;
+      const int stripe = 16;
 
-      for (int i = it.size() - 1; i > 0; i--) {
-        it[i] = it[i - 1].get();
-      }
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
+      int width = it.size() / leg_count;
 
-      if(state < width/2){
-        it[0] = ESPColor(255,0,0);
-      } else {
-        it[0] = ESPColor(255,255,255);
+      for(int i =0;i< leg_count;i++){
+        for (int j = width - 1; j > 0; j--) {
+          it[j+i*width] = it[j - 1 + i*width].get();
+        }
+
+        if(state < stripe/2){
+          it[i*width] = Color(255,0,0);
+        } else {
+          it[i*width] = Color(255,255,255);
+        }
       }
 
       state += 1;
-      if (state >= width)
+      if (state >= stripe)
           state = 0;
 
 - addressable_lambda:
@@ -190,7 +197,7 @@
         int new_green = start_green - (green_step * led_index);
         int new_blue = start_blue - (blue_step * led_index);
 
-        it[led_index] = ESPColor( new_red, new_green, new_blue);
+        it[led_index] = Color( new_red, new_green, new_blue);
       }
 
       led_index++;
@@ -208,16 +215,16 @@
       if (initial_run){
         state = 0;
 
-        it.all() = ESPColor(218,165,32);
+        it.all() = Color(218,165,32);
 
         ESP_LOGD("custom", "Gold Glitter");
       } else {
 
-        it.all() = ESPColor(218,165,32);
+        it.all() = Color(218,165,32);
 
         if(state==0){
           int i = rand() % it.size();
-          it[i] = ESPColor(255,255,255);
+          it[i] = Color(255,255,255);
           state += 1;
         } else {
           state += 1;
@@ -243,7 +250,7 @@
 
         if(state==0){
           int i = rand() % it.size();
-          it[i] = ESPColor(255,255,255);
+          it[i] = Color(255,255,255);
           state += 1;
         } else {
           state += 1;
@@ -261,9 +268,9 @@
 
         for(int i=0;i<it.size();i++){
           if(rand() % light_odds == 0){
-            it[i] = ESPColor::random_color();
+            it[i] = Color::random_color();
           } else {
-            it[i] = ESPColor(0,0,0);
+            it[i] = Color(0,0,0);
           }
         }
         ESP_LOGD("custom", "Twinkle");
@@ -272,9 +279,9 @@
         int i = rand() % it.size();
 
         if(rand() % light_odds == 0){
-          it[i] = ESPColor::random_color();
+          it[i] = Color::random_color();
         } else {
-          it[i] = ESPColor(0,0,0);
+          it[i] = Color(0,0,0);
         }
       }
 
@@ -284,24 +291,24 @@
     lambda:
       const int light_odds = 2;
 
-      const ESPColor colors[] = {
-        ESPColor(230,230,250),
-        ESPColor(176,224,230),
-        ESPColor(173,216,230),
-        ESPColor(135,206,250),
-        ESPColor(135,206,235),
-        ESPColor(0,191,255),
-        ESPColor(176,196,222),
-        ESPColor(30,144,255),
-        ESPColor(100,149,237),
-        ESPColor(70,130,180),
-        ESPColor(95,158,160),
-        ESPColor(65,105,225),
-        ESPColor(0,0,255),
-        ESPColor(0,0,205),
-        ESPColor(0,0,139),
-        ESPColor(0,0,128),
-        ESPColor(25,25,112),
+      const Color colors[] = {
+        Color(230,230,250),
+        Color(176,224,230),
+        Color(173,216,230),
+        Color(135,206,250),
+        Color(135,206,235),
+        Color(0,191,255),
+        Color(176,196,222),
+        Color(30,144,255),
+        Color(100,149,237),
+        Color(70,130,180),
+        Color(95,158,160),
+        Color(65,105,225),
+        Color(0,0,255),
+        Color(0,0,205),
+        Color(0,0,139),
+        Color(0,0,128),
+        Color(25,25,112),
       };
 
       const int color_count = 17;
@@ -310,7 +317,7 @@
 
         for(int i=0;i<it.size();i++){
           if(rand() % light_odds == 0){
-            it[i] = ESPColor(0,0,0);
+            it[i] = Color(0,0,0);
           } else {
             int color_index = rand() % color_count;
             it[i] = colors[color_index];
@@ -320,7 +327,7 @@
 
       int led_index = rand() % it.size();
       if(rand() % light_odds == 0){
-        it[led_index] = ESPColor(0,0,0);
+        it[led_index] = Color(0,0,0);
       } else {
         int color_index = rand() % color_count;
         it[led_index] = colors[color_index];
@@ -336,9 +343,9 @@
 
         for(int i=0;i<it.size();i++){
           if(rand() % light_odds == 0){
-            it[i] = ESPColor(255,255,255);
+            it[i] = Color(255,255,255);
           } else {
-            it[i] = ESPColor(0,0,0);
+            it[i] = Color(0,0,0);
           }
         }
         ESP_LOGD("custom", "White Twinkle");
@@ -347,9 +354,9 @@
         int i = rand() % it.size();
 
         if(rand() % light_odds == 0){
-          it[i] = ESPColor(255,255,255);
+          it[i] = Color(255,255,255);
         } else {
-          it[i] = ESPColor(0,0,0);
+          it[i] = Color(0,0,0);
         }
       }
 
@@ -365,7 +372,7 @@
           if(rand() % light_odds == 0){
             it[i] = current_color;
           } else {
-            it[i] = ESPColor(0,0,0);
+            it[i] = Color(0,0,0);
           }
         }
         ESP_LOGD("custom", "Current Twinkle");
@@ -376,7 +383,7 @@
         if(rand() % light_odds == 0){
           it[i] = current_color;
         } else {
-          it[i] = ESPColor(0,0,0);
+          it[i] = Color(0,0,0);
         }
       }
 
@@ -385,45 +392,51 @@
     update_interval: 100ms
     lambda:
 
-      ESPColor colors[] = { ESPColor(255,0,0),
-                            ESPColor(0,255,0),
-                            ESPColor(255,255,0),
-                            ESPColor(0,0,255),
-                            ESPColor(255,82,0),
-                            ESPColor(163,0,255),
+      Color colors[] = { Color(255,0,0),
+                            Color(0,255,0),
+                            Color(255,255,0),
+                            Color(0,0,255),
+                            Color(255,82,0),
+                            Color(163,0,255),
                             };
 
       static int state = 0;
       static int step = 0;
       const int color_size = 6;
-      static int width = it.size();
 
-      for (int i = it.size() - 1; i > 0; i--) {
-        it[i] = it[i - 1].get();
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
+      int width = it.size() / leg_count;
+
+      for(int i =0;i< leg_count;i++){
+
+        for (int j = width - 1; j > 0; j--) {
+          it[j + i*width] = it[j - 1 + i*width].get();
+        }
+
+        it[0 + i*width] = colors[state];
       }
-
-      it[0] = colors[state];
 
       step += 1;
       if (step >= width){
         step = 0;
-        state += 1;
-        if (state >= color_size)
-            state = 0;
+        state = ++state % color_size;
       }
+
 - addressable_lambda:
     name: Vesuvius
     update_interval: 50ms
     lambda:
 
-      ESPColor colors[] = { ESPColor(255,0,0),
-                            ESPColor(0,255,0),
-                            ESPColor(255,255,0),
-                            ESPColor(0,0,255),
-                            ESPColor(255,0,255),
-                            ESPColor(0,255,255),
-                            ESPColor(255,255,255),
-                            ESPColor(0,0,0),
+      Color colors[] = { Color(255,0,0),
+                            Color(0,255,0),
+                            Color(255,255,0),
+                            Color(0,0,255),
+                            Color(255,0,255),
+                            Color(0,255,255),
+                            Color(255,255,255),
+                            Color(0,0,0),
                             };
 
       static int color = 0;
@@ -453,11 +466,11 @@
 
       for (int i = it.size()/2; i >= 0; i--) {
         if(i % width == step){
-          it[i] = ESPColor(255,255,255);
-          it[it.size() - i] = ESPColor(255,255,255);
+          it[i] = Color(255,255,255);
+          it[it.size() - i] = Color(255,255,255);
         } else {
-          it[i] = ESPColor(0,0,0);
-          it[it.size() - i] = ESPColor(0,0,0);
+          it[i] = Color(0,0,0);
+          it[it.size() - i] = Color(0,0,0);
         }
       }
 
@@ -475,9 +488,9 @@
 
       for (int i = it.size(); i >= 0; i--) {
         if(i % width == step){
-          it[i] = ESPColor(255,255,255);
+          it[i] = Color(255,255,255);
         } else {
-          it[i] = ESPColor(0,0,0);
+          it[i] = Color(0,0,0);
         }
       }
 
@@ -491,8 +504,8 @@
     lambda:
 
       static int step = 0;
-      const ESPColor car_color = ESPColor(255,0,0);
-      const ESPColor fill_color = ESPColor(0,127,0);
+      const Color car_color = Color(255,0,0);
+      const Color fill_color = Color(0,127,0);
 
       for (int i = 0 ;i < it.size(); i++) {
         it[i] = fill_color;
@@ -512,14 +525,14 @@
     update_interval: 30ms
     lambda:
 
-      ESPColor colors[] = { ESPColor(255,0,0),
-                            ESPColor(0,255,0),
-                            ESPColor(255,255,0),
-                            ESPColor(0,0,255),
-                            ESPColor(255,0,255),
-                            ESPColor(0,255,255),
-                            ESPColor(255,255,255),
-                            ESPColor(0,0,0),
+      Color colors[] = { Color(255,0,0),
+                            Color(0,255,0),
+                            Color(255,255,0),
+                            Color(0,0,255),
+                            Color(255,0,255),
+                            Color(0,255,255),
+                            Color(255,255,255),
+                            Color(0,0,0),
                             };
 
       static int color = 0;
@@ -527,17 +540,20 @@
       static int direction = 1;
       const int color_size = 8;
 
-      it[it.size()/2 - step] = colors[color];
-      if(it.size()/2 + step < it.size()){
-        it[it.size()/2 + step] = colors[color];
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
+      int width = it.size() / leg_count;
+
+      for(int i =0;i< leg_count;i++){
+        it[width/2 - step + (i*width)] = colors[color];
+        it[width/2 + step + (i*width)] = colors[color];
       }
 
       step += direction;
-      if (step > it.size()/2 || step < 0){
+      if (step > width/2 || step < 0){
         direction *= -1;
-        color += 1;
-        if (color >= color_size)
-            color = 0;
+        color = ++color % color_size;
       }
 
 - addressable_lambda:
@@ -557,7 +573,7 @@
 
       it[step] = current_color;
       if(step >0 && step < it.size()){
-        it[step + (direction * -1)] = ESPColor(0,0,0);
+        it[step + (direction * -1)] = Color(0,0,0);
       }
 
       step = step + direction;
@@ -586,13 +602,13 @@
 
       if(state == 0){
 
-        it.all() = ESPColor(0,0,0);
+        it.all() = Color(0,0,0);
 
         while(i < it.size()){
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(255,0,0);
+              it[i + j] = Color(255,0,0);
             }
           }
           i += width;
@@ -609,7 +625,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(0,0,255);
+              it[i + j] = Color(0,0,255);
             }
           }
           i += width;
@@ -620,7 +636,7 @@
 
       } else if(state == 1){
 
-        it.all() = ESPColor(0,0,0);
+        it.all() = Color(0,0,0);
 
         while(i < it.size()){
 
@@ -628,7 +644,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(255,0,0);
+              it[i + j] = Color(255,0,0);
             }
           }
           i += width;
@@ -637,7 +653,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(255,255,255);
+              it[i + j] = Color(255,255,255);
             }
           }
           i += width;
@@ -646,7 +662,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(0,0,255);
+              it[i + j] = Color(0,0,255);
             }
           }
           i += width;
@@ -659,7 +675,7 @@
 
       } else if(state == 2){
 
-        it.all() = ESPColor(0,0,0);
+        it.all() = Color(0,0,0);
 
         while(i < it.size()){
 
@@ -669,7 +685,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(255,0,0);
+              it[i + j] = Color(255,0,0);
             }
           }
           i += width;
@@ -678,7 +694,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(0,0,255);
+              it[i + j] = Color(0,0,255);
             }
           }
           i += width;
@@ -693,7 +709,7 @@
 
       } else if(state == 3){
 
-        it.all() = ESPColor(0,0,0);
+        it.all() = Color(0,0,0);
 
         while(i < it.size()){
 
@@ -701,7 +717,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(255,0,0);
+              it[i + j] = Color(255,0,0);
             }
           }
           i += width;
@@ -710,7 +726,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(255,255,255);
+              it[i + j] = Color(255,255,255);
             }
           }
           i += width;
@@ -719,7 +735,7 @@
 
           for( int j = 0; j < width; j++){
             if(i + j < it.size() && i + j >= 0){
-              it[i + j] = ESPColor(0,0,255);
+              it[i + j] = Color(0,0,255);
             }
           }
           i += width;
@@ -747,10 +763,10 @@
 
       const int repeat_limit = 4;
 
-      const ESPColor s01_fill = ESPColor(255,0,0);
-      const ESPColor s02_fill = ESPColor(255,255,255);
-      const ESPColor s03_fill = ESPColor(0,0,255);
-      const ESPColor background_fill = ESPColor(0,0,0);
+      const Color s01_fill = Color(255,0,0);
+      const Color s02_fill = Color(255,255,255);
+      const Color s03_fill = Color(0,0,255);
+      const Color background_fill = Color(0,0,0);
       const int s0_flash_limit = 3;
       const int chase_limit = 2;
 
@@ -908,13 +924,15 @@
     name: Cross Wheel
     update_interval: 80ms
     lambda:
-      const int leg_count = 4;
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
       static int state = 0;
 
       int width = it.size() / leg_count;
       int start;
 
-      it.all() = ESPColor(0,0,0);
+      it.all() = Color(0,0,0);
 
       start = state * width;
 
@@ -929,7 +947,9 @@
     name: Cross Wheel Oppose
     update_interval: 500ms
     lambda:
-      const int leg_count = 4;
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
       static int state = 0;
 
       int width = it.size() / leg_count;
@@ -940,7 +960,7 @@
         state = 0;
       }
 
-      it.all() = ESPColor(0,0,0);
+      it.all() = Color(0,0,0);
 
       start = state * width;
 
@@ -961,16 +981,18 @@
     name: Cross Wheel Random
     update_interval: 80ms
     lambda:
-      const int leg_count = 4;
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
       static int state = 0;
 
       int width = it.size() / leg_count;
       int start;
-      ESPColor color;
+      Color color;
 
-      color = ESPColor::random_color();
+      color = Color::random_color();
 
-      it.all() = ESPColor(0,0,0);
+      it.all() = Color(0,0,0);
 
       start = state * width;
 
@@ -1009,12 +1031,12 @@
 
       for (int i = 0; i < it.size(); i++) {
         if(color_state == 0){
-          it[i] = ESPColor(255,0,0);
+          it[i] = Color(255,0,0);
         } else {
-          it[i] = ESPColor(0,0,255);
+          it[i] = Color(0,0,255);
         }
         if(cycle == 1 && state < flash_width){
-          it[i] = ESPColor(255,255,255);
+          it[i] = Color(255,255,255);
         }
 
         state += 1;
@@ -1035,4 +1057,124 @@
             first_color = first_color % 2;
           }
       }
+
+- addressable_lambda:
+    name: Severed On
+    update_interval: 500ms
+    lambda:
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
+      static int state = 0;
+
+      int width = it.size() / leg_count;
+      int start;
+
+      if(initial_run){
+        ESP_LOGD("custom", "Severed On Effect");
+        state = 0;
+      }
+
+      it.all() = Color(0,0,0);
+
+      for (int i = 0 ; i < leg_count; i++) {
+        if(i > state) break;
+        start = i * width;
+        for(int j = 0; j < width; j++){
+          it[start + j] = current_color;
+        }
+      }
+
+      state += 1;
+      if(state >= leg_count) state = (leg_count - 1);
+
+- addressable_lambda:
+    name: Severed Off
+    update_interval: 500ms
+    lambda:
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
+      static int state = 0;
+
+      int width = it.size() / leg_count;
+      int start;
+
+      if(initial_run){
+        ESP_LOGD("custom", "Severed Off Effect");
+        state = 0;
+      }
+
+      it.all() = current_color;
+
+      for (int i = 0 ; i < leg_count; i++) {
+        if(i > state) break;
+        start = i * width;
+        for(int j = 0; j < width; j++){
+          it[start + j] = Color(0,0,0);
+        }
+      }
+
+      state += 1;
+      if(state >= leg_count) state = (leg_count - 1);
+
+- addressable_lambda:
+    name: Fill On
+    update_interval: 60ms
+    lambda:
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
+      static int state = 0;
+
+      int width = it.size() / leg_count;
+      int start;
+
+      if(initial_run){
+        ESP_LOGD("custom", "Fill On Effect");
+        state = 0;
+      }
+
+      it.all() = Color(0,0,0);
+
+      for( int i=0; i<width; i++){
+        if(i > state) break;
+        for( int j=0; j< leg_count; j++){
+          it[i + (width * j)] = current_color;
+        }
+      }
+
+      state += 1;
+      if(state >= width) state = (width - 1);
+
+- addressable_lambda:
+    name: Fill Off
+    update_interval: 60ms
+    lambda:
+      int leg_count = 4;
+      if(it.size() < 100) leg_count = 1;
+      if(it.size() > 240) leg_count = 8;
+      static int state = 0;
+
+      int width = it.size() / leg_count;
+      int start;
+
+      if(initial_run){
+        ESP_LOGD("custom", "Fill Off Effect");
+        state = 0;
+      }
+
+      it.all() = current_color;
+
+      for( int i=0; i<width; i++){
+        if(i > state) break;
+        for( int j=0; j< leg_count; j++){
+          it[i + (width * j)] = esphome::Color(0,0,0);
+        }
+      }
+
+      state += 1;
+      if(state >= width) state = (width - 1);
+
+
 

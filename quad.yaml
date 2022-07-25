@@ -1,0 +1,105 @@
+substitutions:
+  device_name: quad
+  upper_device_name: Quad LED
+
+esphome:
+  name: quad
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+wifi:
+  ssid: !secret wifi_iot_ssid
+  password: !secret wifi_iot_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Quad Fallback Hotspot"
+    password: !secret hotspot_password
+
+captive_portal:
+
+web_server:
+  port: 80
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 30min
+    icon: mdi:wifi
+
+time:
+  - platform: sntp
+    id: esptime
+    timezone: America/Detroit
+    servers:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+
+light:
+
+  - platform: fastled_clockless
+    chipset: WS2811
+    rgb_order: GRB
+    pin: GPIO2
+    num_leds: 37
+    id: seg_0
+    name: $upper_device_name Segment 0
+
+  - platform: fastled_clockless
+    chipset: WS2811
+    rgb_order: GRB
+    pin: GPIO12
+    num_leds: 37
+    id: seg_1
+    name: $upper_device_name Segment 1
+
+  - platform: fastled_clockless
+    chipset: WS2811
+    rgb_order: GRB
+    pin: GPIO13
+    num_leds: 37
+    id: seg_2
+    name: $upper_device_name Segment 2
+
+  - platform: fastled_clockless
+    chipset: WS2811
+    rgb_order: GRB
+    pin: GPIO15
+    num_leds: 37
+    id: seg_3
+    name: $upper_device_name Segment 3
+    
+  - platform: partition
+    id: $device_name
+    name: $upper_device_name
+    segments:
+      - id: seg_0
+        from: 0
+        to: 36
+      - id: seg_1
+        from: 0
+        to: 36  
+      - id: seg_2
+        from: 0
+        to: 36
+      - id: seg_3
+        from: 0
+        to: 36  
+    effects: !include include/led_effects.yaml
+    
+    
