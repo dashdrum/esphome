@@ -81,13 +81,14 @@ button:
                 "Clock Half",
                 "Clock Inverse",
                 "Clock Marquee",
+                "Clock Pendulum",
                 "Clock Tourbillon",
                 "Police 3",
                 "Rainbow Spinner",
                 "Color Test",
                 "Color Wipe"
               };
-            int num_effects = 17;
+            int num_effects = 18;
     
             int i = rand() % num_effects;
     
@@ -1230,6 +1231,96 @@ light:
             if (step >= width){
               step = 0;
             }
+            
+            if(second < 60){
+              it[second] = second_color;
+            }
+            it[minute] = minute_color;
+            it[hour] = hour_color;
+            
+            if(hour == minute && second > 1){
+              if(second % 2 == 1){
+                it[minute] = minute_color;
+                ESP_LOGD("same", "Hour equal minute");
+              }
+            }
+            
+            if(second > 59){
+              it.all() = Color(255,255,255);
+            }
+            
+      - addressable_lambda:
+          name: Clock Pendulum
+          update_interval: 20ms
+          lambda:
+            const Color hour_color = Color(255,0,0);
+            const Color minute_color = Color(0,200,0);
+            const Color second_color = Color(0,145,255);
+            const Color indicator_color = Color(110,0,135);
+            const Color minor_indicator_color = Color(85,0,85);
+            const Color pend_color = Color(255,215,0);
+            int hour;
+            int hour_adj;
+            int minute;
+            int second;
+            static int state = 0;
+            
+            int width = 10;
+            int hold = 3;
+            int half_time = 25;
+            int right_start = hold - 1;        
+            int right_stop = half_time;        
+            int hold_start = half_time + hold; 
+            int hold_stop = half_time - 1;     
+            int left_start = hold_start - 1;   
+            int left_point = 30 + (width / 2); 
+            int right_point = 30 - (width / 2); 
+            float distance = float(width) / ((float(half_time) - (float(hold))+1.0));
+
+            it.all() = Color(0,0,0);
+
+            for(int i = 0; i < it.size();i++){
+              if(id(marker_setting) > 1){
+                if(i % (it.size() / 12) == 0){
+                  it[i] = minor_indicator_color;
+                }
+              }
+              if(id(marker_setting) > 0){
+                if(i % (it.size() / 4) == 0){
+                  it[i] = indicator_color;
+                }
+              }
+            }
+
+            int pend_loc = ( millis() % 1000) / 20;
+
+            if(pend_loc < hold){
+              it[left_point] = pend_color;
+            } else if(pend_loc > right_start && pend_loc < right_stop){
+              it[int(float(left_point) - (float(pend_loc - right_start)*distance))] = pend_color;
+              if(int(float(left_point) - (float(pend_loc - right_start)*distance))-1 > right_point - 1){
+                it[int(float(left_point) - (float(pend_loc - right_start)*distance))-1] = pend_color;
+              }
+            } else if( hold_stop < pend_loc && pend_loc < hold_start){
+              it[right_point] = pend_color;
+            } else if(pend_loc > left_start){
+              it[int(float(right_point) + (float(pend_loc - left_start)*distance))]  = pend_color;
+              if(int(float(right_point) + (float(pend_loc - left_start)*distance))+1 < left_point + 1){
+                it[int(float(right_point) + (float(pend_loc - left_start)*distance))+1]  = pend_color;
+              }
+            }
+          
+            auto time = id(esptime).now();
+            if (!time.is_valid()) {
+              return;
+            }
+            
+            hour = (time.hour % 12) * 5;
+            minute = time.minute;
+            second = time.second;
+            
+            hour_adj = 5 * minute / 60;
+            hour = hour + hour_adj;
             
             if(second < 60){
               it[second] = second_color;
