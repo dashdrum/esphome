@@ -7,23 +7,35 @@ esphome:
   name: $device_name
   platform: ESP8266
   board: d1_mini
+  on_boot:
+    - priority: -300
+      then:
+        - script.execute: handle_sensors
 
 wifi: !include include/wifi_iot_manual.yaml
 
 captive_portal:
-
-web_server:
-  port: 80
 
 logger:
   level: WARN
 
 ota:
 
-# web_server:
-#   port: 80
+web_server:
+  port: 80
 
-mqtt: !include include/mqtt_deep_sleep.yaml
+mqtt: 
+  id: mqtt_cli
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  # Needed when using deep sleep mode
+  birth_message:
+    topic: $device_name/birthdisable
+    payload: disable
+  will_message:
+    topic: $device_name/willdisable
+    payload: disable
 
 # Enable Home Assistant API
 # api:
@@ -32,12 +44,17 @@ i2c:
 
 sensor:
   - platform: sht3xd
+    id: sht30d_1
     temperature:
       name: "Temp Compare SHT30D Temperature"
       expire_after: 60min
       accuracy_decimals: 2
       device_class: "temperature"
       state_topic: $device_name/sht3xd/temperature/state
+      on_value: 
+        lambda: |-
+          id(updates)++;
+          ESP_LOGD("Temp","SHT30D Temperature Value Returned");
     humidity:
       name: "Temp Compare SHT30D Humidity"
       expire_after: 60min
@@ -45,57 +62,153 @@ sensor:
       icon: mdi:water-percent
       device_class: "humidity"
       state_topic: $device_name/sht3xd/humidity/state
-    update_interval: 15min
-    
+      on_value: 
+        lambda: |-
+          id(updates)++;
+          ESP_LOGD("Temp","SHT30D Humidity Value Returned");
+    update_interval: never
+
   - platform: bme280
+    id: bme280_1
     temperature:
-      name: "Temp Compare BME280 Temperature"
+      name: $upper_device_name BME280 Temperature
       id: bme280_temperature
       oversampling: 16x
-      expire_after: 60min
+      expire_after: 30min
       accuracy_decimals: 2
       device_class: "temperature"
       state_topic: $device_name/bme280/temperature/state
+      on_value: 
+        lambda: |-
+          id(updates)++;
+          ESP_LOGD("Read","BME280 Temperature Value Returned");
     pressure:
-      name: "Temp Compare BME280 Pressure"
+      name: $upper_device_name BME280 Pressure
       id: bme280_pressure
-      expire_after: 60min
+      oversampling: 16x
+      expire_after: 30min
       unit_of_measurement: "mbar"
+      device_class: pressure
       accuracy_decimals: 2
-      icon: mdi:gauge
-      device_class: "pressure"
       state_topic: $device_name/bme280/pressure/state
+      on_value: 
+        lambda: |-
+          id(updates)++;
+          ESP_LOGD("Read","BME280 Pressure Value Returned");
     humidity:
-      name: "Temp Compare BME280 Humidity"
-      expire_after: 60min
+      name: $upper_device_name BME280 Humidity
+      id: bme280_humidity
+      oversampling: 16x
+      expire_after: 30min
       accuracy_decimals: 2
-      icon: mdi:water-percent
       device_class: "humidity"
       state_topic: $device_name/bme280/humidity/state
+      on_value: 
+        lambda: |-
+          id(updates)++;
+          ESP_LOGD("Read","BME280 Humidity Value Returned");
     address: 0x76
-    update_interval: 10min
-  # - platform: template
-  #   name: "Temp Compare BME280 Equiv Sea Level Pressure"
-  #   lambda: |-
-  #     const float STANDARD_ALTITUDE = 204; // in meters, see note
-  #     return id(bme280_pressure).state / powf(1 - ((0.0065 * STANDARD_ALTITUDE) /
-  #       (id(bme280_temperature).state + (0.0065 * STANDARD_ALTITUDE) + 273.15)), 5.257); // in hPa
-  #   update_interval: 10min
-  #   unit_of_measurement: 'mBar'
-  #   expire_after: 60min
-  #   accuracy_decimals: 2
-  #   icon: mdi:gauge
-  #   state_topic: $device_name/bme280/equiv_sea_level_pressure/state
+    update_interval: never
     
+  - platform: template
+    name: $upper_device_name BME280 Sea Level Pressure
+    id: bme280_sea_level
+    unit_of_measurement: 'hPa'
+    device_class: pressure
+    update_interval: never
+
   - platform: wifi_signal
+    id: wifi_signal_1
     name: $upper_device_name WiFi Signal
-    update_interval: 60s
-    expire_after: 60min
-    icon: mdi:wifi
+    update_interval: never
+    on_value: 
+      lambda: |-
+        id(updates)++;
+        ESP_LOGD("Read","WiFi Value Returned");
+    
+deep_sleep: 
+  id: deep_sleep_1
       
 button:
   - platform: restart
-    name: $upper_device_name Restart
-    
-deep_sleep: !include include/deep_sleep_15.yaml
+    name: $upper_device_name 
+    id: restart_button
 
+globals:
+  - id: updates
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: errors
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: defeat_sleep
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+script:
+  - id: handle_sensors
+    then:
+
+    - lambda: |-
+        ESP_LOGD("Script","Subscribe to defeat_sleep");
+        id(mqtt_cli).subscribe("hass/defeat_sleep/state", [=](const std::string &topic, const std::string &payload) {
+          id(defeat_sleep) = (payload.compare("on") == 0);
+        });
+
+    - lambda: |-
+        ESP_LOGD("Script","Get Sensor Updates");
+        id(updates) = 0; 
+        id(errors) = 0;
+        id(sht30d_1).update();
+        if(id(sht30d_1)->status_has_error()){
+          id(errors) += 2;
+          ESP_LOGD("Update","SHT30D Update Error");
+        }
+        id(bme280_1).update();
+        if(id(bme280_1)->status_has_error()){
+          id(errors) += 3;
+          ESP_LOGD("Update","BME280 Update Error");
+        }
+        id(wifi_signal_1).update();
+        if(id(wifi_signal_1)->status_has_error()){
+          id(errors) += 1;
+          ESP_LOGD("Update","Wifi Signal Update Error");
+        }
+
+    - lambda: |-
+        ESP_LOGD("Script","Wait for updates");
+        
+    - wait_until:
+        lambda: |-
+          return (id(updates) + id(errors) >= 6);
+
+    - lambda: |-
+        ESP_LOGD("Script","Publish Readings");
+        const float STANDARD_ALTITUDE = 204; // in meters
+        float press = id(bme280_pressure).state;
+        float temp = id(bme280_temperature).state;
+        float sea_level =  (press / powf(1 - ((0.0065 * STANDARD_ALTITUDE) /
+        (temp + (0.0065 * STANDARD_ALTITUDE) + 273.15)), 5.257)) + 2.8; // in hPa
+        id(bme280_sea_level).publish_state(sea_level);
+        
+    - lambda: ESP_LOGD("Script","defeat_sleep = %d", id(defeat_sleep));
+
+    # - while:
+    #     condition:
+    #       lambda: 'return id(defeat_sleep) == 1;'
+    #     then:
+    #       # How to I check the button?
+    
+    - wait_until:
+        lambda: 'return id(defeat_sleep) == 0;'
+          
+    - lambda: |-
+        ESP_LOGD("Script","defeat_sleep = %d", id(defeat_sleep));
+        ESP_LOGD("Script","Entering deep sleep");
+    
+    - deep_sleep.enter:
+        id: deep_sleep_1
+        sleep_duration: 15min
