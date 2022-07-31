@@ -11,9 +11,6 @@ esphome:
     - priority: 500.00
       then:
         - delay: 500ms
-    - priority: -300
-      then:
-        - script.execute: handle_sensors
 
 wifi: !include include/wifi_iot_manual.yaml
 
@@ -31,71 +28,28 @@ ota:
 web_server:
   port: 80
 
-mqtt: 
-  id: mqtt_cli
-  broker: !secret mqtt_broker
-  username: !secret mqtt_username
-  password: !secret mqtt_password
-  # Needed when using deep sleep mode
-  birth_message:
-    topic: $device_name/birthdisable
-    payload: disable
-  will_message:
-    topic: $device_name/willdisable
-    payload: disable
+mqtt:  !include include/mqtt_deep_sleep_device_name.yaml
 
 i2c:
 
 sensor:
-
-  - platform: bme280
-    id: bme280_1
+  - !include include/sht3xd.yaml
+    
+  - platform: ms5611
     temperature:
-      name: $upper_device_name Temperature
-      id: bme280_temperature
-      oversampling: 16x
-      expire_after: 30min
-      accuracy_decimals: 2
-      device_class: "temperature"
-      state_topic: $device_name/temperature/state
-      on_value: 
-        lambda: |-
-          id(updates)++;
-          ESP_LOGD("Read","BME280 Temperature Value Returned");
+      name: $upper_device_name Alt Temperature
+      id: alt_temperature
+      # internal: true
     pressure:
       name: $upper_device_name Pressure
-      id: bme280_pressure
-      oversampling: 16x
+      id: pressure
       expire_after: 30min
       unit_of_measurement: "mbar"
       device_class: pressure
       accuracy_decimals: 2
       state_topic: $device_name/pressure/state
-      on_value: 
-        lambda: |-
-          id(updates)++;
-          ESP_LOGD("Read","BME280 Pressure Value Returned");
-    humidity:
-      name: $upper_device_name Humidity
-      id: bme280_humidity
-      oversampling: 16x
-      expire_after: 30min
-      accuracy_decimals: 2
-      device_class: "humidity"
-      state_topic: $device_name/humidity/state
-      on_value: 
-        lambda: |-
-          id(updates)++;
-          ESP_LOGD("Read","BME280 Humidity Value Returned");
-    address: 0x76
-    update_interval: never
-    
-  - platform: template
-    name: $upper_device_name Sea Level Pressure
-    id: bme280_sea_level
-    update_interval: never
-    unit_of_measurement: 'hPa'
-    device_class: pressure
+    address: 0x77
+    update_interval: 60s
 
   - platform: adc
     pin: A0
@@ -109,107 +63,20 @@ sensor:
     name: $upper_device_name Battery
     id: battery
     device_class: battery
-    update_interval: never
+    update_interval: 60s
     expire_after: 60min
     state_topic: $device_name/battery/state
-    on_value: 
-      lambda: |-
-        id(updates)++;
-        ESP_LOGD("Read","Battery Value Returned");
 
   - platform: wifi_signal
     id: wifi_signal_1
     name: $upper_device_name WiFi Signal
-    update_interval: never
-    on_value: 
-      lambda: |-
-        id(updates)++;
-        ESP_LOGD("Read","WiFi Value Returned");
+    expire_after: 60min
+    update_interval: 60s
     
-deep_sleep: 
-  id: deep_sleep_1
-  run_duration: 20s
+deep_sleep: !include include/deep_sleep_15.yaml
       
 button:
   - platform: restart
     name: $upper_device_name 
     id: restart_button
 
-globals:
-  - id: updates
-    type: int
-    restore_value: no
-    initial_value: '0'
-  - id: errors
-    type: int
-    restore_value: no
-    initial_value: '0'
-  - id: defeat_sleep
-    type: int
-    restore_value: no
-    initial_value: '0'
-
-script:
-  - id: handle_sensors
-    then:
-
-    - lambda: |-
-        ESP_LOGD("Script","Subscribe to defeat_sleep");
-        id(mqtt_cli).subscribe("outdoor/defeat_sleep/state", [=](const std::string &topic, const std::string &payload) {
-          id(defeat_sleep) = (payload.compare("on") == 0);
-        });
-
-    - lambda: |-
-        ESP_LOGD("Script","Get Sensor Updates");
-        id(updates) = 0; 
-        id(errors) = 0;
-        id(bme280_1).update();
-        if(id(bme280_1)->status_has_error()){
-          id(errors) += 3;
-          ESP_LOGD("Update","BME280 Update Error");
-        }
-        id(battery).update();
-        if(id(battery)->status_has_error()){
-          id(errors) += 1;
-          ESP_LOGD("Update","Battery Update Error");
-        }
-        id(wifi_signal_1).update();
-        if(id(wifi_signal_1)->status_has_error()){
-          id(errors) += 1;
-          ESP_LOGD("Update","Wifi Signal Update Error");
-        }
-
-    - lambda: |-
-        ESP_LOGD("Script","Wait for updates");
-        
-    - wait_until:
-        lambda: |-
-          return (id(updates) + id(errors) >= 5);
-
-    - lambda: |-
-        ESP_LOGD("Script","Publish Readings");
-        const float STANDARD_ALTITUDE = 204; // in meters
-        float press = id(bme280_pressure).state;
-        float temp = id(bme280_temperature).state;
-        float sea_level =  (press / powf(1 - ((0.0065 * STANDARD_ALTITUDE) /
-        (temp + (0.0065 * STANDARD_ALTITUDE) + 273.15)), 5.257)) + 2.8; // in hPa
-        id(bme280_sea_level).publish_state(sea_level);
-        
-    - lambda: ESP_LOGD("Script","defeat_sleep = %d", id(defeat_sleep));
-
-    # - while:
-    #     condition:
-    #       lambda: 'return id(defeat_sleep) == 1;'
-    #     then:
-    #       # How to I check the button?
-    
-    - wait_until:
-        lambda: 'return id(defeat_sleep) == 0;'
-          
-    - lambda: |-
-        ESP_LOGD("Script","defeat_sleep = %d", id(defeat_sleep));
-        ESP_LOGD("Script","Entering deep sleep");
-    
-    - deep_sleep.enter:
-        id: deep_sleep_1
-        sleep_duration: 15min
