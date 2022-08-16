@@ -1105,8 +1105,6 @@
         state = 0;
       }
 
-      it.all() = current_color;
-
       for (int i = 0 ; i < leg_count; i++) {
         if(i > state) break;
         start = i * width;
@@ -1163,8 +1161,6 @@
         ESP_LOGD("custom", "Fill Off Effect");
         state = 0;
       }
-
-      it.all() = current_color;
 
       for( int i=0; i<width; i++){
         if(i > state) break;
