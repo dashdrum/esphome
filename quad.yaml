@@ -59,6 +59,7 @@ light:
     num_leds: 37
     id: seg_0
     name: $upper_device_name Segment 0
+    internal: true
 
   - platform: fastled_clockless
     chipset: WS2811
@@ -67,6 +68,7 @@ light:
     num_leds: 37
     id: seg_1
     name: $upper_device_name Segment 1
+    internal: true
 
   - platform: fastled_clockless
     chipset: WS2811
@@ -75,6 +77,7 @@ light:
     num_leds: 37
     id: seg_2
     name: $upper_device_name Segment 2
+    internal: true
 
   - platform: fastled_clockless
     chipset: WS2811
@@ -83,6 +86,7 @@ light:
     num_leds: 37
     id: seg_3
     name: $upper_device_name Segment 3
+    internal: true
     
   - platform: partition
     id: $device_name
@@ -101,5 +105,5 @@ light:
         from: 0
         to: 36  
     effects: !include include/led_effects.yaml
-    
-    
+          
+      
