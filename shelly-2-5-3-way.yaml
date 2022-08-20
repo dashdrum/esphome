@@ -15,19 +15,19 @@
 # SW inputs on the Shelly, while the wires heading to the other switch are
 # connected to the Output channels.
 
-#.Update the ip_address and mac_address before installing
+# One may choose between the ESPHome API and MQTT interfaces
 
 substitutions:
   device_name: shellyswitch25
   upper_device_name: Shelly 3-Way Switch
-  ip_address: 192.168.254.49
-  # mac_address: 68c63afb7b5c
   mac_address: 00d075f
+  timezone: America/Detroit
   channel_1: Relay 1
   channel_2: Relay 2
+
+# These settings may need to be tweaked based on the load
   at_least: "1.9"
   at_most: "2.0"
-
   max_power: "2000.0"
   max_temp: "70.0"
 
@@ -35,8 +35,23 @@ esphome:
   name: ${device_name}_${mac_address}
   platform: ESP8266
   board: esp01_1m
+  on_boot:
+    then:
+      - binary_sensor.template.publish:
+          id: overpowering
+          state: OFF
+      - binary_sensor.template.publish:
+          id: overheating
+          state: OFF
 
-wifi: !include include/wifi_manual.yaml
+wifi: 
+  ssid: !secret wifi_iot_ssid
+  password: !secret wifi_iot_password
+  
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: $upper_device_name
+    password: !secret hotspot_password
 
 captive_portal:
 
@@ -49,18 +64,26 @@ logger:
 
 api:
 
-# ota:
-
-mqtt: !include include/mqtt.yaml
+# mqtt: 
+#   id: mqtt_client
+#   broker: !secret mqtt_broker
+#   username: !secret mqtt_username
+#   password: !secret mqtt_password
+#   birth_message:
+#     topic: $device_name/availability
+#     payload: online
+#   will_message:
+#     topic: $device_name/availability
+#     payload: offline
 
 time:
   - platform: sntp
     id: esptime
-    timezone: America/Detroit
+    timezone: $timezone
     servers:
-      - 192.168.254.118
       - 0.pool.ntp.org
       - 1.pool.ntp.org
+      - 2.pool.ntp.org
       
 ota:
 
@@ -88,12 +111,20 @@ sensor:
         - above: ${max_power}
           then:
             - switch.turn_off: shelly_relay_2
-            - homeassistant.service:
-                service: persistent_notification.create
-                data:
-                  title: Message from ${device_name}
-                data_template:
-                  message: Switch turned off because power exceeded ${max_power}W
+            - binary_sensor.template.publish:
+                id: overpowering
+                state: ON
+            ## This Home Assistant service is not available when using MQTT
+            - if:
+                condition:
+                  - wifi.connected:
+                then:
+                  - homeassistant.service:
+                      service: persistent_notification.create
+                      data:
+                        title: Message from ${device_name}
+                      data_template:
+                        message: Switch turned off because power exceeded ${max_power}W
                   
         # Power up event.  If the switch is not "ON", turn it on
         - above: ${at_least}
@@ -110,7 +141,6 @@ sensor:
             - if:
                 condition:
                   switch.is_on: three_way_switch
-                  # lambda: 'return  (id(three_way_switch).state && id(power_channel_1).state < ${at_most} )' 
                 then:
                   - switch.turn_off: three_way_switch
                         
@@ -123,12 +153,20 @@ sensor:
         - above: ${max_power}
           then:
             - switch.turn_off: shelly_relay_1
-            - homeassistant.service:
-                service: persistent_notification.create
-                data:
-                  title: Message from ${device_name}
-                data_template:
-                  message: Switch turned off because power exceeded ${max_power}W
+            - binary_sensor.template.publish:
+                id: overpowering
+                state: ON
+            ## This Home Assistant service is not available when using MQTT
+            - if:
+                condition:
+                  - wifi.connected:
+                then:
+                  - homeassistant.service:
+                      service: persistent_notification.create
+                      data:
+                        title: Message from ${device_name}
+                      data_template:
+                        message: Switch turned off because power exceeded ${max_power}W
                   
         # Power up event.  If the switch is not "ON", turn it on
         - above: ${at_least}
@@ -145,7 +183,6 @@ sensor:
             - if:
                 condition:
                   switch.is_on: three_way_switch
-                  # lambda: 'return  (id(temp_switch).state && id(power_channel_2).state < ${at_most} )' 
                 then:
                   - switch.turn_off: three_way_switch
                   
@@ -175,6 +212,7 @@ sensor:
   - platform: ntc
     sensor: temp_resistance_reading
     name: ${device_name}_${mac_address} Temperature
+    id: device_temp
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     icon: "mdi:thermometer"
@@ -187,20 +225,28 @@ sensor:
         then:
           - switch.turn_off: shelly_relay_1
           - switch.turn_off: shelly_relay_2
-          - homeassistant.service:
-              service: persistent_notification.create
-              data:
-                title: Message from ${device_name}
-              data_template:
-                message: Switch turned off because temperature exceeded ${max_temp}°C
+          - binary_sensor.template.publish:
+              id: overheating
+              state: ON
+          ## This Home Assistant service is not available when using MQTT
+          - if:
+              condition:
+                - wifi.connected:
+              then:
+                - homeassistant.service:
+                    service: persistent_notification.create
+                    data:
+                      title: Message from ${device_name}
+                    data_template:
+                      message: Switch turned off because temperature exceeded ${max_temp}°C
   - platform: resistance
     id: temp_resistance_reading
-    name: temp_resistance
+    # name: temp_resistance
     sensor: temp_analog_reading
     configuration: DOWNSTREAM
     resistor: 32kOhm
   - platform: adc
-    name: temp_analog
+    # name: temp_analog
     id: temp_analog_reading
     pin: A0
     
@@ -230,6 +276,10 @@ sensor:
     icon: "mdi:lightning-bolt"
     update_interval: 10s
 
+  - platform: wifi_signal
+    name: ${device_name}_${mac_address} WiFi Signal
+    update_interval: 60s
+
 status_led:
   pin:
     number: GPIO0
@@ -238,7 +288,7 @@ status_led:
 switch:
     # This template switch reports the public state of the switch
   - platform: template
-    name: ${device_name}_${mac_address} $upper_device_name
+    name: ${device_name}_${mac_address}
     id: three_way_switch
     icon: 'mdi:lightbulb-outline'
     # If power is high, the switch should report on
@@ -280,6 +330,7 @@ switch:
 binary_sensor:
   - platform: gpio
     name: ${device_name}_${mac_address} Input 1
+    icon: 'mdi:light-switch'
     pin:
       number: GPIO13
     id: switch_1
@@ -290,11 +341,31 @@ binary_sensor:
         
   - platform: gpio
     name: ${device_name}_${mac_address} Input 2
+    icon: 'mdi:light-switch'
     pin:
       number: GPIO5
     id: switch_2
     # Switch is detached (input is ignored)
+    
+  - platform: template
+    name: ${device_name}_${mac_address} Overheating
+    id: overheating
+    device_class: problem
+    # No lambda here.  The sensor is set to OFF at boot up, and is turned on 
+    # when the temp exceeds the limit.
+    # Restart required to reset to off
+    
+  - platform: template
+    name: ${device_name}_${mac_address} Overpowering
+    id: overpowering
+    device_class: problem
+    # No lambda here.  The sensor is set to OFF at boot up, and is turned on 
+    # when the power usage exceeds the limit.
+    # Restart required to reset to off
+        
+  - platform: status
+    name: ${device_name}_${mac_address} status
       
 button:
   - platform: restart
-    name: $upper_device_name Restart
+    name: ${device_name}_${mac_address} Restart
