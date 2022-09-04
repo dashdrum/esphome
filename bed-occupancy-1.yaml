@@ -1,0 +1,137 @@
+substitutions:
+  device_name: bed_occupancy_1
+  upper_device_name: Bed Occupancy 1
+
+esp8266:
+  board: d1_mini
+
+esphome:
+  name: $device_name
+    
+# Enable logging
+logger:
+  level: WARN
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+wifi: !include include/wifi_iot.yaml
+  
+captive_portal:
+
+web_server:
+  port: 80
+  version: 2
+  include_internal: true
+
+# http_request:
+#   useragent: esphome/$device_name
+#   timeout: 2s
+
+binary_sensor:
+  - platform: gpio
+    name: $upper_device_name
+    id: bed_occupancy
+    pin:
+      number: GPIO16
+      mode: INPUT_PULLDOWN
+    device_class: occupancy
+    on_state:
+      then:
+        - if:
+            condition:
+              lambda: 'return x == true;'
+            then:
+              - light.turn_on: onboard_led
+            else:
+              - light.turn_off: onboard_led
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO4
+  rx_pin: GPIO5
+  baud_rate: 115200
+  debug:
+    direction: BOTH
+    dummy_receiver: true
+    after:
+      delimiter: "\n"
+    sequence:
+      - lambda: UARTDebug::log_string(direction, bytes);
+
+number:
+  - platform: template
+    name: $upper_device_name Distance
+    id: distance
+    min_value: 0
+    max_value: 1350
+    initial_value: 315
+    optimistic: true
+    step: 15
+    restore_value: true
+    unit_of_measurement: cm
+    set_action:
+      - uart.write: "sensorStop"
+      - delay: 1s
+      - uart.write: !lambda
+                      int cm = (int)ceil(x / 15.0);
+                      std::string cms = "detRangeCfg -1 0 " + to_string(cm);
+                      return std::vector<unsigned char>(cms.begin(), cms.end());
+      - delay: 1s
+      - uart.write: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+      - delay: 1s
+      - uart.write: "sensorStart"
+      
+  - platform: template
+    name: $upper_device_name Latency
+    id: latency
+    min_value: 0
+    max_value: 65000
+    initial_value: 12500
+    optimistic: true
+    step: 25
+    restore_value: true
+    unit_of_measurement: ms
+    set_action:
+      - uart.write: "sensorStop"
+      - delay: 1s
+      - uart.write: !lambda
+                      int ms = (int)ceil(x / 25.0);
+                      std::string mss = "outputLatency -1 0 " + to_string(ms);
+                      return std::vector<unsigned char>(mss.begin(), mss.end());
+      - delay: 1s
+      - uart.write: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+      - delay: 1s
+      - uart.write: "sensorStart" 
+    
+sensor:
+    
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 30min
+    icon: mdi:wifi
+
+button:
+  - platform: restart
+    name: $upper_device_name Restart
+
+  - platform: template
+    name: $upper_device_name Factory Reset Sensor
+    id: "factory_reset_sensor"
+    on_press:
+      - uart.write: "sensorStop"
+      - delay: 1s
+      - uart.write: "factoryReset 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+      - delay: 3s
+      - uart.write: "sensorStart" 
+      
+light:
+  - platform: status_led
+    id: onboard_led
+    pin:
+      number: GPIO2
+      inverted: true
+    
