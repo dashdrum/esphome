@@ -24,9 +24,7 @@ logger:
   level: WARN
 
 # Enable Home Assistant API
-# api:
-
-mqtt: !include include/mqtt.yaml
+api:
 
 ota:
       
@@ -46,7 +44,16 @@ binary_sensor:
     id: button_input_0
     on_press:
       then:
-        - switch.toggle: backlight
+        - if:
+            condition:
+              switch.is_off: backlight
+            then:
+              switch.turn_on: backlight
+            else:
+              - homeassistant.service:
+                  service: script.turn_on
+                  data:
+                    entity_id: script.dishwasher_rollback_status
   - platform: gpio
     pin:
       number: GPIO35
@@ -55,8 +62,14 @@ binary_sensor:
     id: button_input_1
     on_press:
       then:
-        - display.page.show_next: screen
-        - component.update: screen
+        - if:
+            condition:
+              switch.is_off: backlight
+            then:
+              switch.turn_on: backlight
+            else:
+              - display.page.show_next: screen
+              - component.update: screen
 
 # We can still control the backlight independently
 switch:
@@ -71,14 +84,16 @@ sensor:
     update_interval: 30min
     icon: mdi:wifi
     
-  - platform: mqtt_subscribe
+  - platform: homeassistant
+    entity_id: sensor.dishwasher_switch_switch_0_power
     id: dw_power
-    topic: hass/dishwasher/power
+    internal: true
     
 text_sensor:
-  - platform: mqtt_subscribe
+  - platform: homeassistant
     id: dw_status
-    topic: hass/dishwasher/status
+    entity_id: input_select.dishwasher_status
+    internal: true
     
 spi:
   clk_pin: GPIO18
@@ -86,6 +101,7 @@ spi:
 
 display:
   - platform: st7789v
+    model: TTGO TDisplay 135x240
     backlight_pin: GPIO4
     cs_pin: GPIO5
     dc_pin: GPIO16
