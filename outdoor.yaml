@@ -35,21 +35,21 @@ i2c:
 sensor:
   - !include include/sht3xd.yaml
     
-  - platform: ms5611
-    temperature:
-      name: $upper_device_name Alt Temperature
-      id: alt_temperature
-      # internal: true
-    pressure:
-      name: $upper_device_name Pressure
-      id: pressure
-      expire_after: 30min
-      unit_of_measurement: "mbar"
-      device_class: pressure
-      accuracy_decimals: 2
-      state_topic: $device_name/pressure/state
-    address: 0x77
-    update_interval: 60s
+  # - platform: ms5611
+  #   temperature:
+  #     name: $upper_device_name Alt Temperature
+  #     id: alt_temperature
+  #     # internal: true
+  #   pressure:
+  #     name: $upper_device_name Pressure
+  #     id: pressure
+  #     expire_after: 30min
+  #     unit_of_measurement: "mbar"
+  #     device_class: pressure
+  #     accuracy_decimals: 2
+  #     state_topic: $device_name/pressure/state
+  #   address: 0x77
+  #   update_interval: 60s
 
   - platform: adc
     pin: A0

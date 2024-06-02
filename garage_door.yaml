@@ -44,7 +44,7 @@ sensor:
     update_interval: 15min
     
   - platform: wifi_signal
-    name: $upper_device_name WiFi Signal
+    name: WiFi Signal
     update_interval: 30min
     icon: mdi:wifi
     
@@ -55,13 +55,13 @@ output:
 
 button:
   - platform: output
-    name: $upper_device_name Short Push
+    name: Short Push
     id: push_button
     output: output1
     duration: 600ms     
     
   - platform: output
-    name: $upper_device_name Long Push
+    name: Long Push
     id: long_push_button
     output: output1
     duration: 8.98s   
@@ -88,6 +88,7 @@ binary_sensor:
       - delayed_on_off: 20ms
       - invert:
     state_topic: $device_name/garage_door/state
+    retain: true
 
 cover:
   - platform: template

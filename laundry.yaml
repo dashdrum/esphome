@@ -13,7 +13,7 @@ captive_portal:
 
 # Enable logging
 logger:
-  level: INFO
+  level: WARN
 
 # Enable Home Assistant API
 # api:
@@ -177,7 +177,7 @@ binary_sensor:
           dryer_motion_count++;
         }
         
-        ESP_LOGD("INFO","Ranges: %.2f %.2f %.2f %d %d", dryer_ax_range, dryer_ay_range, dryer_az_range, dryer_state, dryer_motion_count);
+        ESP_LOGI("INFO","Ranges: %.2f %.2f %.2f %d %d", dryer_ax_range, dryer_ay_range, dryer_az_range, dryer_state, dryer_motion_count);
         
         if(dryer_check_count >= dryer_check_max){
           

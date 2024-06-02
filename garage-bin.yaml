@@ -17,6 +17,7 @@ captive_portal:
 
 web_server:
   port: 80
+  include_internal: true
 
 # Enable logging
 logger:
@@ -54,7 +55,7 @@ binary_sensor:
   - platform: template
     name: $upper_device_name
     lambda: |-
-      if (id(ultra_sensor).state < 0.4 ) {  // Must be this close to wall in meters
+      if (id(ultra_sensor).state < 0.3 ) {  // Must be this close to wall in meters
         // within required distance
         return true;
       } else {

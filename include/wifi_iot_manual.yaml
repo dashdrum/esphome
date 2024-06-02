@@ -1,9 +1,12 @@
 ssid: !secret wifi_iot_ssid
 password: !secret wifi_iot_password
 
+power_save_mode: LIGHT
+fast_connect: true
+
 manual_ip:
   static_ip: $ip_address
-  gateway: 192.168.254.1
+  gateway: 192.168.37.1
   subnet: 255.255.255.0
 
 # When switching a device from DHCP to manual, uncomment the following line and enter the current IP. Recomment after flashing and reinstall.

@@ -1,0 +1,108 @@
+substitutions:
+  device_name: basement-stair-1
+  upper_device_name: Basement Stair 1
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi_iot.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+  include_internal: true
+
+# Enable logging
+logger:
+  level: WARN
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
+
+# the vl53l0x is i2c
+i2c:
+  scan: true
+      
+light:
+  - platform: status_led
+    id: onboard_led
+    pin:
+      number: GPIO2
+      inverted: true
+
+##
+## The virutal break beam sensor.
+## The state of this will be controlled 
+## by breakbeam_sensor_dist's lambda as necessary.
+##
+binary_sensor:
+  - name: $upper_device_name Motion
+    id: breakbeam_sensor
+    platform: template
+    device_class: motion
+    on_state:
+      then:
+        - if:
+            condition:
+              lambda: 'return x == true;'
+            then:
+              - light.turn_on: onboard_led
+            else:
+              - light.turn_off: onboard_led
+
+##
+## The actual sensor. 
+## This sensor's lambda will control the state of our 
+## virtual break beam sensor, breakbeam_sensor.
+##
+sensor:
+  - name: "Breakbeam Sensor Dist"
+    id: breakbeam_sensor_dist
+    platform: vl53l0x
+    address: 0x29
+    update_interval: 0.1s
+    long_range: true
+    internal: true
+    #
+    # Only send a value back if breakbeam_sensor changes.
+    #
+    filters:
+      - lambda: !lambda |-
+          /**
+           * YOU MIGHT WANT TO CONFIGURE THIS.
+           * Distance below which to trip the virtual break beam sensor.
+           * '0.5' meters is about 20  inches.
+           */
+          static double minTripDistance = 0.8;
+          if (x <= minTripDistance) {
+            if (id(breakbeam_sensor).state == true) {
+              // Beam was already broken
+              return {};
+            }
+            // Beam was just broken
+            id(breakbeam_sensor).publish_state(true);
+            ESP_LOGI("breakbeam_sensor_dist", "Set breakbeam_sensor to Detected");
+            return {};
+          }
+          else {
+            if (id(breakbeam_sensor).state == false) {
+              // Beam was already un-broken
+              return {};
+            }
+            // Beam was just un-broken
+            id(breakbeam_sensor).publish_state(false);
+            ESP_LOGI("breakbeam_sensor_dist", "Set breakbeam_sensor to Cleared");
+            return {};
+          }
+    

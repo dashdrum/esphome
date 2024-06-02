@@ -2,7 +2,6 @@ substitutions:
   device_name: lr_ir
   upper_device_name: Living Room IR
   switch_prefix: IR
-  tv_state_topic: $device_name/living_room_tv/state
 
 esphome:
   name: $device_name
@@ -15,42 +14,47 @@ captive_portal:
 
 web_server:
   port: 80
+  include_internal: true
 
 # Enable logging
 logger:
-  level: INFO
+  level: DEBUG
 
 # Enable Home Assistant API
-# api:
+api:
 
 ota:
-
-mqtt: !include include/mqtt.yaml
     
-output: !include include/onboard_led.yaml
+# output: !include include/onboard_led.yaml
+
+binary_sensor:
+  - platform: template
+    name: $upper_device_name State
+    id: lr_tv_state
+    icon: mdi:television
     
 sensor:
   - platform: wifi_signal
     name: $upper_device_name WiFi Signal
-    update_interval: 60s
+    update_interval: 30min
     icon: mdi:wifi
-    
-text_sensor:
-  - platform: mqtt_subscribe
-    id: lr_tv_state
-    topic: $tv_state_topic
-    icon: mdi:television
-    
-# binary_sensor:
-#   - platform: template
-#     name: $upper_device_name TV State
-#     icon: mdi:television
-#     lambda: |-
-#       if (id(lr_tv_state).state == "on") {
-#         return true;
-#       } else {
-#         return false;
-#       }
+
+text_sensor:    
+  - platform: homeassistant
+    id: hass_lr_tv_status
+    entity_id: sensor.living_room_tv_status
+    internal: true
+    on_value:
+      then:
+        - if:
+            condition:
+              text_sensor.state:
+                id: hass_lr_tv_status
+                state: 'On'
+            then: 
+              lambda: id(lr_tv_state).publish_state(true);
+            else:
+              lambda: id(lr_tv_state).publish_state(false);
       
 script: 
   # While this script is running the receiver will ignore any power codes
@@ -71,10 +75,10 @@ remote_receiver:
       if (x.data == 0xA90){
         if ( id(code_repeat_block).is_running() == false){
           id(code_repeat_block).execute();
-          if (id(lr_tv_state).state == "on") {
-            id(mqtt_client).publish("lr_ir/living_room_tv/state", "off");
+          if (id(lr_tv_state).state) {
+            id(lr_tv_state).publish_state(false);
           } else {
-            id(mqtt_client).publish("lr_ir/living_room_tv/state", "on");
+            id(lr_tv_state).publish_state(true);
           }
         }
       }
@@ -107,15 +111,41 @@ button:
           times: 2
     
   - platform: template
+    name: $upper_device_name Cablebox
+    id: cablebox
+    on_press:
+      remote_transmitter.transmit_sony:
+        data: 0x250
+        nbits: 12
+        repeat:
+          times: 2
+    
+  - platform: template
+    name: $upper_device_name Netflix
+    on_press:
+      # Netflix button
+      - remote_transmitter.transmit_sony:
+          data: 0x1F58
+          nbits: 15
+          repeat:
+            times: 2
+      - delay: 1000ms
+      # OK
+      - remote_transmitter.transmit_sony:
+          data: 0xA70
+          nbits: 12
+          repeat:
+            times: 2
+    
+  - platform: template
     name: $upper_device_name TV-Cable On
+    id: tv_cable_on
     on_press:
         #. TV power on, Cable Menu, Cable power twice
       - if:
           condition:
             # Checks if tv is already on
-            text_sensor.state:
-              id: lr_tv_state
-              state: 'off'
+            binary_sensor.is_off: lr_tv_state
           then:
             - remote_transmitter.transmit_sony:
                 data: 0xA90
@@ -144,14 +174,13 @@ button:
     
   - platform: template
     name: $upper_device_name TV-Cable Off
+    id: tv_cable_off
     on_press:
         #. TV power on, Cable Menu, Cable power one
       - if:
           condition:
             # Only turn off the TV if it is actually on
-            text_sensor.state:
-              id: lr_tv_state
-              state: 'on'
+            binary_sensor.is_on: lr_tv_state
           then:
             - remote_transmitter.transmit_sony:
                 data: 0xA90
@@ -171,10 +200,143 @@ button:
                  600,-2150, 600,-2150, 600,-2100, 600,-2150, 600,-2150, 600,-2150,
                  600,-2150, 600,-2150, 600,-4300, 600,-4300, 600,-2150, 600]
           carrier_frequency: 38kHz
-      
+    
+  - platform: template
+    name: $upper_device_name TV All On Off
+    id: lr_tv_all_on_off
+    on_press:
+      - if:
+          condition:
+            binary_sensor.is_on: lr_tv_state
+          then:
+            - button.press: tv_cable_off
+          else:
+            - button.press: tv_cable_on
+    
+  - platform: template
+    name: $upper_device_name CNN
+    # Channel 33
+    on_press:
+      - if:
+          condition:
+            # We need the TV on first
+            binary_sensor.is_off: lr_tv_state
+          then:
+            - button.press: tv_cable_on
+            - delay: 3s
+      - remote_transmitter.transmit_raw:
+          # Digit 3
+          code: [ 9100,-4450, 600,-4450, 550,-4500, 600,-2200, 550,-2200, 550,-2200, 
+                  550,-2200, 550,-2250, 550,-2250, 550,-2200, 600,-2200, 550,-2200, 
+                  550,-2200, 550,-4450, 600,-2200, 550,-4450, 600,-4450, 600]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+      - remote_transmitter.transmit_raw:
+          # Digit 3
+          code: [ 9100,-4450, 600,-4450, 550,-4500, 600,-2200, 550,-2200, 550,-2200, 
+                  550,-2200, 550,-2250, 550,-2250, 550,-2200, 600,-2200, 550,-2200, 
+                  550,-2200, 550,-4450, 600,-2200, 550,-4450, 600,-4450, 600]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+      - button.press: cablebox
+    
+  - platform: template
+    name: $upper_device_name Science Channel
+    # Channel 76
+    on_press:
+      - if:
+          condition:
+            # We need the TV on first
+            binary_sensor.is_off: lr_tv_state
+          then:
+            - button.press: tv_cable_on
+            - delay: 3s
+      - remote_transmitter.transmit_raw:
+          # Digit 7
+          code: [ 9100,-4450, 600,-4450, 600,-4450, 600,-4450, 600,-2200, 600,-2200, 
+                  600,-2200, 550,-2200, 600,-2200, 600,-2200, 600,-2200, 600,-2200, 
+                  600,-2200, 600,-4450, 600,-2200, 600,-2200, 600,-4450, 550]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+        # Digit 6
+      - remote_transmitter.transmit_raw:
+          code: [ 9100,-4450, 550,-2200, 600,-4450, 600,-4500, 600,-2200, 600,-2200, 
+                  600,-2200, 550,-2200, 600,-2200, 600,-2200, 600,-2200, 600,-2200, 
+                  550,-2200, 600,-2200, 600,-4450, 600,-2200, 550,-4450, 600]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+      - button.press: cablebox
+    
+  - platform: template
+    name: $upper_device_name NBC
+    # Channel 4
+    on_press:
+      - if:
+          condition:
+            # We need the TV on first
+            binary_sensor.is_off: lr_tv_state
+          then:
+            - button.press: tv_cable_on
+            - delay: 3s
+      - remote_transmitter.transmit_raw:
+          # Digit 4
+          code: [ 9100,-4450, 600,-2200, 550,-2200, 550,-4450, 600,-2200, 550,-2200, 
+                  550,-2200, 550,-2200, 550,-2250, 550,-2250, 550,-2200, 600,-2200, 
+                  550,-2200, 550,-2200, 550,-2200, 550,-4500, 600,-4450, 550]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+      - button.press: cablebox
+    
+  - platform: template
+    name: $upper_device_name CBS
+    # Channel 10
+    on_press:
+      - if:
+          condition:
+            # We need the TV on first
+            binary_sensor.is_off: lr_tv_state
+          then:
+            - button.press: tv_cable_on
+            - delay: 3s
+      - remote_transmitter.transmit_raw:
+          # Digit 1
+          code: [ 9050,-4500, 600,-4450, 600,-2200, 600,-2250, 550,-2200, 550,-2200, 
+                  600,-2200, 600,-2200, 600,-2200, 550,-2200, 550,-2200, 600,-2200, 
+                  550,-2200, 600,-4450, 600,-4450, 600,-4450, 600,-4450, 600]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+        # Digit 0
+      - remote_transmitter.transmit_raw:
+          code: [ 9100,-4450, 600,-2200, 550,-2200, 550,-2250, 550,-2200, 550,-2200, 
+                  550,-2250, 550,-2200, 550,-2200, 550,-2250, 550,-2200, 600,-2200, 
+                  550,-2250, 550,-2200, 550,-2200, 550,-2200, 550,-2200, 600]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+      - button.press: cablebox
+    
+  - platform: template
+    name: $upper_device_name ABC
+    # Channel 8
+    on_press:
+      - if:
+          condition:
+            # We need the TV on first
+            binary_sensor.is_off: lr_tv_state
+          then:
+            - button.press: tv_cable_on
+            - delay: 3s
+      - remote_transmitter.transmit_raw:
+          # Digit 8
+          code: [ 9100,-4450, 600,-2200, 600,-2200, 600,-2200, 600,-4450, 600,-2200, 
+                  600,-2200, 600,-2200, 600,-2200, 600,-2200, 600,-2200, 600,-2200, 
+                  550,-2200, 600,-2200, 600,-2200, 600,-2200, 550,-4500, 600]
+          carrier_frequency: 38kHz
+      - delay: 300ms
+      - button.press: cablebox
+          
+
   
-  
-  
+
   
   
   

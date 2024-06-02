@@ -1,0 +1,137 @@
+substitutions:
+  device_name: left-bay-parking-guide
+  upper_device_name: Garage Left Bay Parking Guide
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi_iot.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+  include_internal: true
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: !include include/mqtt.yaml
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
+
+# the vl53l0x is i2c
+i2c:
+  scan: true
+      
+light:
+  - platform: status_led
+    id: onboard_led
+    pin:
+      number: GPIO2
+      inverted: true
+
+binary_sensor:
+  - name: $upper_device_name Parked
+    id: breakbeam_sensor
+    platform: template
+    device_class: occupancy
+    icon: mdi:car-pickup
+    on_state:
+      then:
+        - if:
+            condition:
+              lambda: return id(light_color).state == "red";
+            then:
+              - light.turn_on: onboard_led
+            else:
+              - light.turn_off: onboard_led
+
+
+sensor:
+  - name: $upper_device_name Distance
+    id: left_bay_distance
+    platform: vl53l0x
+    address: 0x29
+    update_interval: 0.1s
+    long_range: true
+    internal: true
+    #
+    # Only act if distance passes a set point.
+    #
+    filters:
+      - lambda: !lambda |-
+          static double redLightDistance = 0.1;  
+          static double yellowLightDistance = 1.0;
+
+          if (id(garage_door).state == "OFF" ) return {};
+
+          if (x <= redLightDistance) {
+            if (id(light_color).state == "red") {
+              // no change
+              return {};
+            }
+            // Time for a red light
+            id(breakbeam_sensor).publish_state(true);
+            id(light_color).publish_state("red");
+            ESP_LOGI("left bay distance", "Red light");
+            return {};
+          }
+          else if ( x<= yellowLightDistance) {
+            if (id(light_color).state == "yellow") {
+              // no change
+              return {};
+            }
+            // Time for a yellow light
+            id(breakbeam_sensor).publish_state(false);
+            id(light_color).publish_state("yellow");
+            ESP_LOGI("left bay distance","Yellow light");
+            return {};
+          } else {
+            if (id(light_color).state == "green") {
+              // no change
+              return {};
+            }
+            // Time for a green light
+            id(breakbeam_sensor).publish_state(false);
+            id(light_color).publish_state("green");
+            ESP_LOGI("left bay distance","Green light");
+            return {};
+          }
+
+text_sensor:
+  - name: $upper_device_name Light Color
+    id: light_color
+    platform: template
+    icon: mdi:palette
+    on_value:
+      then:
+        - lambda: |-
+            if (x == "red") {
+              ESP_LOGI("left bay distance","Send Red light message");
+              id(mqtt_client).publish("left-bay-parking-light/light/command", "red");
+            } else if (x == "yellow"){
+              ESP_LOGI("left bay distance","Send Yellow light message");
+              id(mqtt_client).publish("left-bay-parking-light/light/command", "yellow");
+            } else if (x == "green"){
+              ESP_LOGI("left bay distance","Send Green light message");
+              id(mqtt_client).publish("left-bay-parking-light/light/command", "green");
+            }
+
+  - platform: mqtt_subscribe
+    id: garage_door
+    topic: garage_door/garage_door/state
+          
+  - platform: mqtt_subscribe
+    id: left_bay
+    topic: garage_left_bay/binary_sensor/garage_left_bay/state

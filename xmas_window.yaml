@@ -31,11 +31,11 @@ ota:
 mqtt: !include include/mqtt.yaml
 
 light:
-  - platform: fastled_clockless
-    chipset: WS2811
-    pin: GPIO5
+  - platform: neopixelbus
+    type: RGB
+    variant: WS2811
+    pin: D1
     num_leds: 50
-    rgb_order: RGB
     name: $upper_device_name
     id: $device_name
     state_topic: $device_name/light/$device_name/state

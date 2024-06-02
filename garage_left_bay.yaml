@@ -29,7 +29,7 @@ ota:
 
 sensor:
   - platform: ultrasonic
-    name: HC-SR04
+    name: $upper_device_name HC-SR04
     trigger_pin: D1
     echo_pin: D2
     timeout: $timeout

@@ -1,5 +1,5 @@
 ---
-platform: bme280
+platform: bme280_i2c
 temperature:
   name: $upper_device_name Temperature
   id: bme280_temperature

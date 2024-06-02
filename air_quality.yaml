@@ -49,20 +49,20 @@ sensor:
 #       name: "Particulate Matter <10.0µm Concentration"
     
   - platform: wifi_signal
-    name: $upper_device_name WiFi Signal
+    name: WiFi Signal
     update_interval: 30min
     expire_after: 90min
     icon: mdi:wifi
 
   - platform: sgp30
     eco2:
-      name: $upper_device_name eCO2
+      name: eCO2
       id: eco2
       accuracy_decimals: 0
       filters:
         - delta: 11.0
     tvoc:
-      name: $upper_device_name TVOC
+      name: TVOC
       id: tvoc
       accuracy_decimals: 0
       filters:
@@ -76,19 +76,18 @@ sensor:
       eco2_baseline: 0x8A4A
       tvoc_baseline: 0x9019
     
-  - platform: am2320
+  - platform: sht3xd
     temperature:
-      name: $upper_device_name Temperature
+      name: Temperature
       id: temp
       accuracy_decimals: 2
       expire_after: 60min
       device_class: temperature
     humidity:
-      name: $upper_device_name Humidity
+      name: Humidity
       id: humid
       icon: mdi:water-percent
       expire_after: 60min
-    address: 0x5c
     update_interval: 10min
     
   - platform: template

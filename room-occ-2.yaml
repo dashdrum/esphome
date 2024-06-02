@@ -1,19 +1,21 @@
 substitutions:
-  devicename: room_occ_1
-  upper_device_name: Room Occ 1
-  LD1115H_INPUT_PIN: GPIO16
+  LD1115H_INPUT_PIN: GPIO26
   TXPIN: GPIO1
   RXPIN: GPIO3
+  devicename: room_occ_2
+  upper_device_name: Room Occ 2
 
 esphome:
   name: $devicename
   friendly_name: $upper_device_name
 
-esp8266:
-  board: d1_mini
+esp32:
+  board: wemos_d1_mini32
+
 
 # Enable Home Assistant API
 api:
+
 
 ota:
 
@@ -28,7 +30,7 @@ web_server:
 
 # Enable logging
 logger:
-  level: VERBOSE
+  level: ERROR
   baud_rate: 0
 
 

@@ -68,7 +68,7 @@ sensor:
           ESP_LOGD("Temp","SHT30D Humidity Value Returned");
     update_interval: never
 
-  - platform: bme280
+  - platform: bme280_i2c
     id: bme280_1
     temperature:
       name: $upper_device_name BME280 Temperature

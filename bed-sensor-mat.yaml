@@ -1,0 +1,60 @@
+substitutions:
+  device_name: bed-sensor-mat
+  upper_device_name: Bed Sensor Mat
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi_iot.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+# mqtt: !include include/mqtt.yaml
+
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: D8
+      # mode: INPUT_PULLDOWN
+    id: d8_button
+    name: $upper_device_name
+    filters:
+      - delayed_on_off: 20ms
+    on_press:
+      then:
+        - light.turn_on: onboard_led
+    on_release:
+      then:
+        - light.turn_off: onboard_led
+    
+sensor:
+  - platform: wifi_signal
+    name: $upper_device_name WiFi Signal
+    update_interval: 30min
+    icon: mdi:wifi
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
+      
+light:
+  - platform: status_led
+    id: onboard_led
+    pin:
+      number: GPIO2
+      inverted: true
+    

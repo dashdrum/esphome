@@ -1,0 +1,86 @@
+substitutions:
+  device_name: left-bay-parking-light
+  upper_device_name: Garage Left Bay Parking Light
+
+esphome:
+  name: $device_name
+  platform: ESP8266
+  board: d1_mini
+
+wifi: !include include/wifi_iot.yaml
+
+captive_portal:
+
+web_server:
+  port: 80
+  include_internal: true
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+ota:
+
+mqtt: 
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  # discovery: false
+  birth_message:
+    topic: $device_name/availability
+    payload: online
+  will_message:
+    topic: $device_name/availability
+    payload: offline
+  on_message:
+    - topic: $device_name/light/command
+      then:
+        - lambda: |-
+            if(x=="red") {
+              id(yellow_led).turn_off();
+              id(green_led).turn_off();
+              id(red_led).turn_on();
+            }
+            if(x=="yellow")  {
+              id(red_led).turn_off();
+              id(green_led).turn_off();
+              id(yellow_led).turn_on();
+            }
+            if(x=="green")  {
+              id(yellow_led).turn_off();
+              id(red_led).turn_off();
+              id(green_led).turn_on();
+            }
+            if(x=="off")  {
+              id(yellow_led).turn_off();
+              id(green_led).turn_off();
+              id(red_led).turn_off();
+            }
+            
+    - topic: garage_door/garage_door/state
+      payload: 'OFF'
+      then:
+        - output.turn_off: red_led
+        - output.turn_off: yellow_led
+        - output.turn_off: green_led
+      
+button:
+  - platform: restart
+    name: $upper_device_name Restart
+
+output:
+  - platform: gpio
+    pin: GPIO02
+    id: red_led
+    inverted: True    
+  - platform: gpio
+    pin: GPIO02
+    id: yellow_led
+    inverted: True    
+  - platform: gpio
+    pin: GPIO02
+    id: green_led
+    inverted: True    
