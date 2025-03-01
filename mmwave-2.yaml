@@ -18,6 +18,7 @@ logger:
 mqtt: !include include/mqtt.yaml
 
 ota:
+  platform: esphome
 
 wifi: !include include/wifi_iot.yaml
   

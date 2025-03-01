@@ -19,6 +19,7 @@ logger:
 mqtt: !include include/mqtt.yaml
 
 ota:
+  platform: esphome
 
 wifi: !include include/wifi_iot.yaml
   
@@ -32,6 +33,7 @@ captive_portal:
 http_request:
   useragent: esphome/$device_name
   timeout: 2s
+  verify_ssl: false
 
 switch:
   - platform: safe_mode

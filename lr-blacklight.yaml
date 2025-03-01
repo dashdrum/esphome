@@ -4,12 +4,13 @@ substitutions:
 
 esphome:
   name: $device_name
-  platform: ESP8266
-  board: d1_mini
   on_boot:
     then:
       - light.turn_on:
           id: $device_name
+
+esp8266:
+  board: d1_mini
           
 wifi: !include include/wifi_iot.yaml
 
@@ -23,6 +24,7 @@ logger:
 # api:
 
 ota:
+  platform: esphome
 
 web_server:
   port: 80

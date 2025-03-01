@@ -16,6 +16,7 @@ esp8266:
 api:
 
 ota:
+  platform: esphome
 
 wifi: !include include/wifi_iot.yaml
   

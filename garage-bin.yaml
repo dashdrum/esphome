@@ -6,7 +6,8 @@ substitutions:
 
 esphome:
   name: $device_name
-  platform: ESP8266
+
+esp8266:
   board: d1_mini
 
 wifi: !include include/wifi_iot.yaml
@@ -27,6 +28,7 @@ logger:
 # api:
 
 ota:
+  platform: esphome
 
 sensor:
   - platform: ultrasonic

@@ -23,6 +23,7 @@ logger:
 # api:
 
 ota:
+  platform: esphome
 
 mqtt: !include include/mqtt.yaml
       
@@ -84,7 +85,7 @@ sensor:
            * Distance below which to trip the virtual break beam sensor.
            * '0.5' meters is about 20  inches.
            */
-          static double minTripDistance = 0.8;
+          static double minTripDistance = 0.4;
           if (x <= minTripDistance) {
             if (id(breakbeam_sensor).state == true) {
               // Beam was already broken

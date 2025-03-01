@@ -33,8 +33,6 @@ substitutions:
 
 esphome:
   name: ${device_name}_${mac_address}
-  platform: ESP8266
-  board: esp01_1m
   on_boot:
     then:
       - binary_sensor.template.publish:
@@ -43,6 +41,9 @@ esphome:
       - binary_sensor.template.publish:
           id: overheating
           state: OFF
+
+esp8266:
+  board: esp01_1m          
 
 wifi: 
   ssid: !secret wifi_iot_ssid
@@ -86,6 +87,7 @@ time:
       - 2.pool.ntp.org
       
 ota:
+  platform: esphome
 
 i2c:
   sda: GPIO12

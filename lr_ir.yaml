@@ -24,6 +24,7 @@ logger:
 api:
 
 ota:
+  platform: esphome
     
 # output: !include include/onboard_led.yaml
 

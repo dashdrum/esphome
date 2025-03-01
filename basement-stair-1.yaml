@@ -23,6 +23,7 @@ logger:
 # api:
 
 ota:
+  platform: esphome
 
 mqtt: !include include/mqtt.yaml
       
@@ -72,8 +73,8 @@ sensor:
     platform: vl53l0x
     address: 0x29
     update_interval: 0.1s
-    long_range: true
-    internal: true
+    long_range: false
+    internal: false
     #
     # Only send a value back if breakbeam_sensor changes.
     #
@@ -84,7 +85,7 @@ sensor:
            * Distance below which to trip the virtual break beam sensor.
            * '0.5' meters is about 20  inches.
            */
-          static double minTripDistance = 0.8;
+          static double minTripDistance = 0.3;
           if (x <= minTripDistance) {
             if (id(breakbeam_sensor).state == true) {
               // Beam was already broken

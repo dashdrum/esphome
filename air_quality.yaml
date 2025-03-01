@@ -4,7 +4,8 @@ substitutions:
 
 esphome:
   name: $device_name
-  platform: ESP32
+
+esp32:
   board: wemos_d1_mini32
 
 wifi: !include include/wifi_iot.yaml
@@ -23,6 +24,7 @@ logger:
 # api:
 
 ota:
+  platform: esphome
 
 mqtt: !include include/mqtt.yaml
       
