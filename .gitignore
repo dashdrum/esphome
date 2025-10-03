@@ -12,3 +12,5 @@
 esphome_backup.sh
 deploy_include.sh
 *.pyc
+archive/
+esphome/

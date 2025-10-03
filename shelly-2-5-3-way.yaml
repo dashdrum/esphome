@@ -192,23 +192,27 @@ sensor:
 
   - platform: total_daily_energy
     id: total_daily_energy_1
+    device_class: energy
+    state_class: total_increasing
     power_id: power_channel_1
     method: trapezoid 
     accuracy_decimals: 3
     filters:
       # Multiplication factor from W to kW is 0.001
       - multiply: 0.001
-    unit_of_measurement: kW
+    unit_of_measurement: kWh
 
   - platform: total_daily_energy
     id: total_daily_energy_2
+    device_class: energy
+    state_class: total_increasing
     power_id: power_channel_2
     method: trapezoid 
     accuracy_decimals: 3
     filters:
       # Multiplication factor from W to kW is 0.001
       - multiply: 0.001
-    unit_of_measurement: kW
+    unit_of_measurement: kWh
 
   # NTC Temperature
   - platform: ntc
@@ -274,9 +278,11 @@ sensor:
     name: ${device_name}_${mac_address} Energy
     accuracy_decimals: 3
     lambda: 'return (id(total_daily_energy_2).state + id(total_daily_energy_1).state);'
-    unit_of_measurement: kW
+    unit_of_measurement: kWh
     icon: "mdi:lightning-bolt"
     update_interval: 10s
+    device_class: energy
+    state_class: total_increasing
 
   - platform: wifi_signal
     name: ${device_name}_${mac_address} WiFi Signal

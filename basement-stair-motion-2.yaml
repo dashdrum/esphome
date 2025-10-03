@@ -4,8 +4,11 @@ substitutions:
 
 esphome:
   name: $device_name
-  platform: ESP8266
-  board: d1_mini
+
+esp32:
+  board: esp32-c6-devkitc-1
+  framework:
+    type: esp-idf
 
 wifi: !include include/wifi_iot.yaml
 

@@ -13,3 +13,6 @@ wifi:
 
 logger:
   level: debug
+
+ota:
+  platform: esphome

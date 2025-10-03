@@ -4,8 +4,11 @@ substitutions:
 
 esphome:
   name: $device_name
-  platform: ESP8266
-  board: d1_mini
+
+esp32:
+  board: esp32-c6-devkitc-1
+  framework:
+    type: esp-idf
 
 wifi: !include include/wifi_iot.yaml
 
@@ -17,7 +20,7 @@ web_server:
 
 # Enable logging
 logger:
-  level: WARN
+  level: INFO
 
 # Enable Home Assistant API
 # api:
@@ -39,8 +42,8 @@ light:
   - platform: status_led
     id: onboard_led
     pin:
-      number: GPIO2
-      inverted: true
+      number: GPIO02
+    #  inverted: true
 
 ##
 ## The virutal break beam sensor.
@@ -72,7 +75,7 @@ sensor:
     id: breakbeam_sensor_dist
     platform: vl53l0x
     address: 0x29
-    update_interval: 0.1s
+    update_interval: 1s
     long_range: false
     internal: false
     #
@@ -89,21 +92,21 @@ sensor:
           if (x <= minTripDistance) {
             if (id(breakbeam_sensor).state == true) {
               // Beam was already broken
-              return {};
+              return {x};
             }
             // Beam was just broken
             id(breakbeam_sensor).publish_state(true);
             ESP_LOGI("breakbeam_sensor_dist", "Set breakbeam_sensor to Detected");
-            return {};
+            return {x};
           }
           else {
             if (id(breakbeam_sensor).state == false) {
               // Beam was already un-broken
-              return {};
+              return {x};
             }
             // Beam was just un-broken
             id(breakbeam_sensor).publish_state(false);
             ESP_LOGI("breakbeam_sensor_dist", "Set breakbeam_sensor to Cleared");
-            return {};
+            return {x};
           }
     
